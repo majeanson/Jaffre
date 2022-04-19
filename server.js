@@ -318,20 +318,6 @@ io.on('connection', function (socket) {
         io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
     }
 
-    const emptyPlayer = players?.find(player => player.socketId === 'empty');
-    console.log('has empty player');
-    if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
-        players = players?.map(player => {
-            if (player.socketId === 'empty') {
-                return {
-                    ...player,
-                    socketId: socket.id
-                }
-            } else {
-                return player;
-            };
-        });
-    }
     console.log('remapped players ', players);
     if (players?.length < 4 && !getPlayerBySocketId(socket.id)) {
         players?.push({
@@ -345,13 +331,28 @@ io.on('connection', function (socket) {
             if (gameState === 'init' || gameState === 'lobby') {
                 changeGameState('gameReady', 'La partie peut d\u00E9buter');
             }
-        } else if (gameState === 'init') {
+            else if (gameState === 'init') {
                 changeGameState('lobby', 'Le lobby doit se remplir');
             }
         } else {
             return;
         }
+    }
 
+    const emptyPlayer = players?.some(player => player.socketId === 'empty');
+    console.log('has empty player');
+    if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
+        players = players?.map(player => {
+            if (player.socketId === 'empty') {
+                return {
+                    ...player,
+                    socketId: socket.id
+                }
+            } else {
+                return player;
+            };
+        });
+    }
     
     io.emit('refreshCards', players, currentDropZone, deadZone);
     io.emit('refreshBackCard');
