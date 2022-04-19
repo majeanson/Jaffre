@@ -319,6 +319,7 @@ io.on('connection', function (socket) {
     }
 
     const emptyPlayer = players?.find(player => player.socketId === 'empty');
+    console.log('has empty player');
     if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
         players = players?.map(player => {
             if (player.socketId === 'empty') {
@@ -331,6 +332,7 @@ io.on('connection', function (socket) {
             };
         });
     }
+    console.log('remapped players ', players);
     if (players?.length < 4 && !getPlayerBySocketId(socket.id)) {
         players?.push({
             inHand: [],
