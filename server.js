@@ -20,14 +20,14 @@ app.use(function (req, res, next) {
     next();
 });
 
-const PORT = 22913;
+const PORT = process.env.PORT || 80;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
 const io = require('socket.io')(server, {
     cors: {
-        origin: ['http://localhost:22913', 'https://jaffre.herokuapp.com'],
+        origin: ['https://jaffre.herokuapp.com', 'http://localhost:8080'],
         methods: ["GET", "POST"],
     }
 });
