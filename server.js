@@ -350,7 +350,7 @@ io.on('connection', function (socket) {
             return;
         }
 
-    }
+    
     io.emit('refreshCards', players, currentDropZone, deadZone);
     io.emit('refreshBackCard');
     io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
