@@ -291,34 +291,6 @@ const hasBonhommeRouge = () => {
 }
 
 io.on('connection', function (socket) {
-
-    console.log('connected with socket id ' + socket.id, players);
-    socket.on('disconnect', function () {
-        console.log('disconnected from socket id ', socket.id);
-        if (players) {
-            players = players?.map(player => {
-                if (player.socketId === socket.id) {
-                    return {
-                        ...player,
-                        socketId: 'empty'
-                    }
-                } else {
-                    return player;
-                };
-            });
-        }
-
-
-    });
-
-    const changeGameState = (aGameState, message) => {
-        gameState = aGameState;
-        gameStateMessage = message;
-        console.log('changeGameState', gameState, gameStateMessage);
-        io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
-    }
-
-    console.log('remapped players ', players);
     if (players?.length < 4 && !getPlayerBySocketId(socket.id)) {
         players?.push({
             inHand: [],
@@ -334,13 +306,26 @@ io.on('connection', function (socket) {
             else if (gameState === 'init') {
                 changeGameState('lobby', 'Le lobby doit se remplir');
             }
-        } else {
-            return;
         }
     }
 
-    const emptyPlayer = players?.some(player => player.socketId === 'empty');
-    console.log('has empty player');
+    console.log('connected with socket id ' + socket.id, players);
+    socket.on('disconnect', function () {
+        console.log('disconnected from socket id ', socket.id);
+        if (players) {
+            const playerIdx = players?.findIndex(player => player.socketId === socket.id);
+            players[playerIdx].socketId = 'empty';
+        }
+    });
+
+    const changeGameState = (aGameState, message) => {
+        gameState = aGameState;
+        gameStateMessage = message;
+        console.log('changeGameState', gameState, gameStateMessage);
+        io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+    }
+
+    const emptyPlayerIdx = players?.some(player => player.socketId === 'empty');
     if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
         players = players?.map(player => {
             if (player.socketId === 'empty') {
