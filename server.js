@@ -325,18 +325,9 @@ io.on('connection', function (socket) {
         io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
     }
 
-    const emptyPlayerIdx = players?.some(player => player.socketId === 'empty');
-    if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
-        players = players?.map(player => {
-            if (player.socketId === 'empty') {
-                return {
-                    ...player,
-                    socketId: socket.id
-                }
-            } else {
-                return player;
-            };
-        });
+    const emptyPlayerIdx = players?.findIndex(player => player.socketId === 'empty');
+    if (emptyPlayerIdx > -1 && !getPlayerBySocketId(socket.id)) {
+        players[emptyPlayerIdx].socketId = socket.id;
     }
     
     io.emit('refreshCards', players, currentDropZone, deadZone);
