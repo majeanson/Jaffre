@@ -31,7 +31,7 @@ export default class InteractivityHandler {
             console.log(gameObject, dropZone, scene.GameHandler.gameState);
             if (scene.canDrop && dropZone === scene.dropZone) {
                 if (scene.GameHandler.isCurrentPlayerTurnDeck()
-                    && scene.GameHandler.gameState === 'gameStarted') {
+                    && (scene.GameHandler.gameState === 'gameStarted' || scene.GameHandler.gameState === 'gameReady')) {
                     scene.socket.emit('cardPlayed', scene.socket.id, gameObject.data?.list.card);                   
                     
                 }

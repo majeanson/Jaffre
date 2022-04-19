@@ -62,7 +62,7 @@ export default class GameHandler {
         }
 
         this.refreshBackCard = () => {
-            if ((this.gameState === 'gameReady' || this.gameState === 'gameStarted') && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
+            if (this.gameState === 'gameReady' && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
                 scene.backCard.setInteractive();
                 scene.backCard.setTint('0xffffff');
             } else {
