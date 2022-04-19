@@ -3,8 +3,8 @@ import io from 'socket.io-client';
 export default class SocketHandler {
     constructor(scene) {
         console.log('hey1');
-        scene.socket = io('http://localhost:8080')
-        console.log('hey2');
+        scene.socket = io();
+
         scene.socket.on('refreshCards', (players, currentDropZone, deadDropZone) => {
             scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone);
         })
