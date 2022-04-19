@@ -321,7 +321,7 @@ io.on('connection', function (socket) {
         console.log('disconnected from socket id ', socket.id);
         if (players) {
             const playerIdx = players?.findIndex(player => player.socketId === socket.id);
-            players[playerIdx].socketId = 'empty';
+            players[playerIdx]?.socketId = 'empty';
         }
     });
 
