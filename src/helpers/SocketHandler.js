@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 export default class SocketHandler {
     constructor(scene) {
         console.log('hey1');
-        scene.socket = io();
+        scene.socket = io("https://jaffre.herokuapp.com");
 
         scene.socket.on('refreshCards', (players, currentDropZone, deadDropZone) => {
             scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone);
