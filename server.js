@@ -291,6 +291,13 @@ const hasBonhommeRouge = () => {
 }
 
 io.on('connection', function (socket) {
+    const changeGameState = (aGameState, message) => {
+        gameState = aGameState;
+        gameStateMessage = message;
+        console.log('changeGameState', gameState, gameStateMessage);
+        io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+    }
+
     if (players?.length < 4 && !getPlayerBySocketId(socket.id)) {
         players?.push({
             inHand: [],
@@ -318,12 +325,7 @@ io.on('connection', function (socket) {
         }
     });
 
-    const changeGameState = (aGameState, message) => {
-        gameState = aGameState;
-        gameStateMessage = message;
-        console.log('changeGameState', gameState, gameStateMessage);
-        io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
-    }
+    
 
     const emptyPlayerIdx = players?.findIndex(player => player.socketId === 'empty');
     if (emptyPlayerIdx > -1 && !getPlayerBySocketId(socket.id)) {
