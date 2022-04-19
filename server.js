@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 const DIST_DIR = path.join(__dirname, '/dist');
 const HTML_FILE = path.join(DIST_DIR, 'index.html');
@@ -11,13 +12,36 @@ app.get('*', (req, res) => {
     res.sendFile(HTML_FILE);
 });
 
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
 
 const PORT = process.env.PORT || 8080;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+    cors: {
+        origin: ['http://localhost:8080', 'https://frozen-sea-72877.herokuapp.com'],
+        methods: ["GET", "POST"]
+    }
+});
 
 let gameState = 'init';
 let gameStateMessage = 'Bienvenue';
