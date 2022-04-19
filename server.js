@@ -319,7 +319,7 @@ io.on('connection', function (socket) {
     }
 
     const emptyPlayer = players?.find(player => player.socketId === 'empty');
-    if (emptyPlayer) {
+    if (emptyPlayer && !getPlayerBySocketId(socket.id)) {
         players = players?.map(player => {
             if (player.socketId === 'empty') {
                 return {
@@ -343,10 +343,11 @@ io.on('connection', function (socket) {
             if (gameState === 'init' || gameState === 'lobby') {
                 changeGameState('gameReady', 'La partie peut d\u00E9buter');
             }
-        } else {
-            if (gameState === 'init') {
+        } else if (gameState === 'init') {
                 changeGameState('lobby', 'Le lobby doit se remplir');
             }
+        } else {
+            return;
         }
 
     }
