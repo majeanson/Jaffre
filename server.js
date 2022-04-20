@@ -298,9 +298,9 @@ const findTheWinningCardAndAddPoints = () => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
-    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone);
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
+    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone);
     return realWinningPlayerIndex;
 }
 
