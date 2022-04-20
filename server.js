@@ -142,6 +142,7 @@ const cardPlayed = (socketId, cardName) => {
     if (canPlayCard(socketId, cardName)) {
         if (isFirstCardPlayedOfRound) {
             atout = getCardColor(cardName);
+            console.log('atout is now :', atout);
         }
         const player = getPlayerBySocketId(socketId);
         player['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
@@ -299,8 +300,9 @@ const findTheWinningCardAndAddPoints = () => {
         pointsToAdd = pointsToAdd + 5;
     }
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
+    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone, winningPlayerIndex);
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
-    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone);
+    
     return realWinningPlayerIndex;
 }
 
