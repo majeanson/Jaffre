@@ -52,8 +52,6 @@ export default class Game extends Phaser.Scene {
         this.UIHandler.buildUI();
         this.InteractivityHandler = new InteractivityHandler(this);
 
-        
-
     }
 
     update() {
