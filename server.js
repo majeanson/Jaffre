@@ -347,6 +347,7 @@ io.on('connection', function (socket) {
     }
 
     console.log('connected with socket id ' + socket.id);
+    console.log(players);
     socket.on('disconnect', function () {
         console.log('disconnected from socket id ', socket.id);
         if (players) {
