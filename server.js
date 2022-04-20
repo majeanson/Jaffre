@@ -130,12 +130,9 @@ const getPlayerIndex = (socketId) => {
     return foundIndex;
 }
 
-const isAllCards = (arr) => {
-    return arr.length === 32;
-}
-
 const isFirstCardPlayedOfRound = () => {
-    return isAllCards(deadZone);
+    const sumOfCardsInHandOfPlayers = player.reduce((acc, a) => acc + a, 0);
+    return sumOfCardsInHandOfPlayers === this.allCards.length;
 }
 
 const cardPlayed = (socketId, cardName) => {
