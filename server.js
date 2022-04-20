@@ -211,7 +211,6 @@ const getHasRequestedColorInHand = (socketId, cardName) => {
         return true;
     } else {
         const playerHand = getPlayerHand(socketId);
-        get
         const requestedCardColor = getCardColor(currentDropZone[0]);
         let count = 0;
         playerHand?.forEach(card => {
