@@ -137,7 +137,7 @@ const isFirstCardPlayedOfRound = () => {
 
 const cardPlayed = (socketId, cardName) => {
     if (canPlayCard(socketId, cardName)) {
-        if (isFirstCardPlayedOfRound) {
+        if (isFirstCardPlayedOfRound()) {
             atout = getCardColor(cardName);
             console.log('atout is now :', atout);
         }
