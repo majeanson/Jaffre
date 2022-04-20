@@ -20,14 +20,16 @@ app.use(function (req, res, next) {
     next();
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = 51586;//process.env.PORT || 80;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
+const devEnv = process.env.NODE_ENV !== "production";
+console.log(process.env.NODE_ENV);
 const io = require('socket.io')(server, {
     cors: {
-        origin: ['https://jaffre.herokuapp.com', 'http://localhost:80'],
+        origin: devEnv ? 'http://localhost:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
         methods: ["GET", "POST"],
     }
 });
@@ -248,6 +250,7 @@ const dealCards = (socketId) => {
         getPlayerBySocketId(socketId)['isMyTurn'] = true;
         arraymove(players, getPlayerIndexBySocketId(socketId), 0);
     }
+    console.log(players);
     deadZone = [];
 }
 
@@ -273,23 +276,76 @@ const isWinningOverAllAtouts = (atoutCard) => {
     return result;
 }
 
+const getPlayerIndexFromCardOrder = (cardOrder) => {
+    const firstPlayerIndex = players.findIndex(player => player.isMyTurn);
+    let res = firstPlayerIndex + cardOrder;
+    while (res > 3) {
+        res -= 4;
+    }
+    console.log('firstPlayerIndex', firstPlayerIndex, 'cardOrder', cardOrder, res);
+    return res;
+    
+    switch (cardOrder) {
+        case 0:
+            switch (firstPlayerIndex) {
+                case 3: return 0;
+                case 2: return 3;
+                case 1: return 2;
+                case 0: return 1;
+            };
+            break;
+        case 1:
+            switch (lastPlayerIndex) {
+                case 3: return 1;
+                case 2: return 0;
+                case 1: return 3;
+                case 0: return 2;
+            };
+            break;
+        case 2:
+            switch (lastPlayerIndex) {
+                case 3: return 2;
+                case 2: return 1;
+                case 1: return 0;
+                case 0: return 3;
+            };
+            break;
+        case 3:
+            switch (lastPlayerIndex) {
+                case 3: return 3;
+                case 2: return 2;
+                case 1: return 1;
+                case 0: return 0;
+            };
+            break;
+
+    }
+}
+
 const findTheWinningCardAndAddPoints = () => {
     let winningPlayerIndex = 0;
     const firstCardPlayed = currentDropZone[0];
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
     let highestAtoutValue = -1;
+    if (cardIsAtout(firstCardPlayed)) {
+        highestAtoutValue = highestTrickValue;
+    };
     currentDropZone?.forEach((card, idx) => {
+       
+        const cardValue = getCardValue(card);
+        const realPlayerIndex = getPlayerIndexFromCardOrder(idx);
+        console.log('La carte idx# ', idx, ' a ete joue par le joueur ', realPlayerIndex + 1);
         if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
-            highestAtoutValue = getCardValue(card);
+            highestAtoutValue = cardValue;
             if (highestAtoutValue > highestTrickValue) {
                 highestTrickValue = highestAtoutValue;
             }
-            winningPlayerIndex = idx;
+            winningPlayerIndex = realPlayerIndex;
         } else {
-            if (getCardColor(card) === requestedTrickColor && getCardValue(card) > highestTrickValue) {
+            if (getCardColor(card) === requestedTrickColor && cardValue > highestTrickValue && highestAtoutValue == -1) {
                 highestTrickValue = cardValue;
-                winningPlayerIndex = idx;
+                winningPlayerIndex = realPlayerIndex;
             }
         }
     });
@@ -300,12 +356,12 @@ const findTheWinningCardAndAddPoints = () => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
-    const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
-console.log(highestTrickValue, highestAtoutValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone, winningPlayerIndex);
-    players[realWinningPlayerIndex].trickPoints += pointsToAdd;
+    console.log(highestTrickValue, highestAtoutValue, atout, requestedTrickColor, currentDropZone, winningPlayerIndex);
+    players[winningPlayerIndex].trickPoints += pointsToAdd;
     
-    return realWinningPlayerIndex;
+    return winningPlayerIndex;
 }
+
 
 const hasBonhommeBrun = () => {
     return currentDropZone?.some((card) => {
@@ -365,7 +421,7 @@ io.on('connection', function (socket) {
 
     const emptyPlayerIdx = players?.findIndex(player => player.socketId === 'empty');
     if (emptyPlayerIdx > -1 && !getPlayerBySocketId(socket.id)) {
-        console.log(socketId, ' has replaced "empty"', ' (Player ', emptyPlayerIdx, ')');
+        console.log(socket.id, ' has replaced "empty"', ' (Player ', emptyPlayerIdx, ')');
         players[emptyPlayerIdx].socketId = socket.id;
     }
     

@@ -53,7 +53,7 @@ export default class UIHandler{
         }
 
         this.buildUI = () => {
-            this.buildBackground();
+           // this.buildBackground();
             this.buildDropZone();
             this.buildPlayerCardZone();
             this.buildScoreZone();

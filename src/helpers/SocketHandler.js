@@ -2,8 +2,9 @@ import io from 'socket.io-client';
 
 export default class SocketHandler {
     constructor(scene) {
-        scene.socket = io("https://jaffre.herokuapp.com");
-
+        //scene.socket = io("https://jaffre.herokuapp.com");
+        scene.socket = io("http://localhost:51586");
+        
         scene.socket.on('refreshCards', (players, currentDropZone, deadDropZone) => {
             scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone);
         })
