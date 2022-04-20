@@ -73,7 +73,41 @@ let deadZone = [
     'ru_7'
 ];
 
-const allCards = deadZone.splice();
+const allCards =
+    [
+        'al_0',
+        'al_1',
+        'al_2',
+        'al_3',
+        'al_4',
+        'al_5',
+        'al_6',
+        'al_7',
+        'an_0',
+        'an_1',
+        'an_2',
+        'an_3',
+        'an_4',
+        'an_5',
+        'an_6',
+        'an_7',
+        'fr_0',
+        'fr_1',
+        'fr_2',
+        'fr_3',
+        'fr_4',
+        'fr_5',
+        'fr_6',
+        'fr_7',
+        'ru_0',
+        'ru_1',
+        'ru_2',
+        'ru_3',
+        'ru_4',
+        'ru_5',
+        'ru_6',
+        'ru_7'
+    ];
 
 const getShuffledCards = () => {
     const clone = allCards.slice();
@@ -265,6 +299,7 @@ const findTheWinningCardAndAddPoints = () => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
+    console.log(highestTrickValue, atout, requestedTrickColor);
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
     return realWinningPlayerIndex;
