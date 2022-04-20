@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\src"
+    "\\src",
+    "\\src\\helpers",
+    "\\src\\scenes"
   ],
   "PreviewInSolutionExplorer": false
 }

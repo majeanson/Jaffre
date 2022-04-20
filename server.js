@@ -285,37 +285,37 @@ const getPlayerIndexFromCardOrder = (cardOrder) => {
     console.log('firstPlayerIndex', firstPlayerIndex, 'cardOrder', cardOrder, res);
     return res;
     
-    switch (cardOrder) {
+    switch (firstPlayerIndex) {
         case 0:
-            switch (firstPlayerIndex) {
-                case 3: return 0;
-                case 2: return 3;
-                case 1: return 2;
-                case 0: return 1;
+            switch (cardOrder) {
+                case 0: return 0;
+                case 1: return 1;
+                case 2: return 2;
+                case 3: return 3;
             };
             break;
         case 1:
-            switch (lastPlayerIndex) {
-                case 3: return 1;
-                case 2: return 0;
-                case 1: return 3;
-                case 0: return 2;
+            switch (cardOrder) {
+                case 0: return 1;
+                case 1: return 2;
+                case 2: return 3;
+                case 3: return 0;
             };
             break;
         case 2:
-            switch (lastPlayerIndex) {
-                case 3: return 2;
-                case 2: return 1;
-                case 1: return 0;
-                case 0: return 3;
+            switch (cardOrder) {
+                case 0: return 2;
+                case 1: return 3;
+                case 2: return 0;
+                case 3: return 1;
             };
             break;
         case 3:
-            switch (lastPlayerIndex) {
-                case 3: return 3;
-                case 2: return 2;
-                case 1: return 1;
-                case 0: return 0;
+            switch (cardOrder) {
+                case 0: return 3;
+                case 1: return 0;
+                case 2: return 1;
+                case 3: return 2;
             };
             break;
 
@@ -323,7 +323,7 @@ const getPlayerIndexFromCardOrder = (cardOrder) => {
 }
 
 const findTheWinningCardAndAddPoints = () => {
-    let winningPlayerIndex = 0;
+    let winningPlayerIndex = getPlayerIndexFromCardOrder(0);
     const firstCardPlayed = currentDropZone[0];
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
