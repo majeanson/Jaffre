@@ -137,6 +137,10 @@ const isFirstCardPlayedOfRound = () => {
     return sumOfCardsInHandOfPlayers === 32;
 }
 
+const isEndOfRound = () => {
+    return deadZone.length === 32;
+}
+
 const cardPlayed = (socketId, cardName) => {
     if (canPlayCard(socketId, cardName)) {
         if (isFirstCardPlayedOfRound()) {
@@ -263,7 +267,7 @@ const endTheTrick = () => {
     players[2]['isMyTurn'] = false;
     players[3]['isMyTurn'] = false;
     players[winningPlayerIndex]['isMyTurn'] = true;
-    io.emit('endTheTrick', currentDropZone, players, deadZone, winningPlayerIndex);
+    io.emit('endTheTrick', currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound());
 }
 
 const isWinningOverAllAtouts = (atoutCard) => {
@@ -383,6 +387,7 @@ io.on('connection', function (socket) {
     const changeGameState = (aGameState, message) => {
         gameState = aGameState;
         gameStateMessage = message;
+        console.log('game state changed to : ', gameState, gameStateMessage);
         io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
     }
 
@@ -458,6 +463,58 @@ io.on('connection', function (socket) {
         cardMovedInHand(socketId, card, index);
         io.emit('cardMovedInHand', socketId, players, currentDropZone, deadZone);
     })
+
+    socket.on('emitChangeGameState', function (gameState, message) {
+        console.log('emit Change Game State', gameState, message);
+        changeGameState(gameState, message);
+    })
+
+    socket.on('finishRoundNow', function () {
+        console.log('finishing round ');
+        players[0]['inHand'] = [];
+        players[1]['inHand'] = [];
+        players[2]['inHand'] = [];
+        players[3]['inHand'] = [];
+        io.emit('endTheTrick', ['al_1', 'al_2', 'al_3', 'al_4'], players,
+
+            [
+                'al_0',
+                'al_1',
+                'al_2',
+                'al_3',
+                'al_4',
+                'al_5',
+                'al_6',
+                'al_7',
+                'an_0',
+                'an_1',
+                'an_2',
+                'an_3',
+                'an_4',
+                'an_5',
+                'an_6',
+                'an_7',
+                'fr_0',
+                'fr_1',
+                'fr_2',
+                'fr_3',
+                'fr_4',
+                'fr_5',
+                'fr_6',
+                'fr_7',
+                'ru_0',
+                'ru_1',
+                'ru_2',
+                'ru_3',
+                'ru_4',
+                'ru_5',
+                'ru_6',
+                'ru_7'
+            ],
+                3, true);
+    })
+
+    
 
 
 })

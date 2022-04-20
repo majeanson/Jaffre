@@ -22,6 +22,10 @@ export default class UIHandler{
             scene.score.setText(scene.GameHandler.getGameScoreText());
             scene.aGrid.placeAtIndex(15.2, scene.score);
             Align.scaleToGameW(scene.game, scene.score, 0.15);
+
+            scene.redButton = scene.add.image(0, 0, 'redbutton').setInteractive();;
+            scene.aGrid.placeAtIndex(7, scene.redButton);
+            Align.scaleToGameW(scene.game, scene.redButton, 0.3);
         }
 
         this.buildDropZone = () => {

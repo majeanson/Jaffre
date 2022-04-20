@@ -7,7 +7,7 @@ export default class DeckHandler {
         this.dropZoneCards = [];
         this.deadZoneCards = [];
 
-        this.renderCards = (players, currentDropZone, deadZone, mode = 'normal') => {
+        this.renderCards = (players, currentDropZone, deadZone, mode) => {
             this.playerZoneCards = scene.GameHandler.getCurrentPlayer()?.inHand;
             this.dropZoneCards = currentDropZone;
             this.deadZoneCards = deadZone;
@@ -43,6 +43,7 @@ export default class DeckHandler {
             let initialIndex = 188.5;
             this.playerZoneCards?.forEach(card => {
                 this.createAndRenderCard(card, initialIndex, mode);
+                console.log('no');
                 initialIndex = initialIndex + 1;
             });
         }
@@ -50,14 +51,17 @@ export default class DeckHandler {
         this.renderDropZoneCards = (mode) => {
             this.dropZoneCards?.forEach((card, index) => {
                 const newCard = this.createAndRenderCard(card, this.getGridIndex(index + 1), mode);
+                console.log('no');
                 scene.input.setDraggable(newCard, false);
             });          
         }
 
         this.renderDeadZoneCards = (mode) => {
             let initialIndex = 500; // out of bounds
+            console.log(mode, this.deadZoneCards);
             this.deadZoneCards?.forEach(card => {
                 const newCard = this.createAndRenderCard(card, initialIndex, mode);
+                console.log('yes');
                 scene.input.setDraggable(newCard, true);
             });
         }      
@@ -111,13 +115,14 @@ export default class DeckHandler {
         
         this.cardMovedInHand = (socketId, players, currentDropZone, deadDropZone) => {
             if (socketId === scene.socket.id) {
-                scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone);
+                scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone, 'normal');
             }
         }
 
         this.endTurn = (currentDropZone, players, deadDropZone) => {
             this.deadZoneCards?.push(... this.dropZoneCards);         
-            this.dropZoneCards = [];            
+            this.dropZoneCards = [];
+            console.log(scene.GameHandler.gameState);
             scene.GameHandler.refreshCards(players, currentDropZone, deadDropZone, 'endTurn');
         }
     }

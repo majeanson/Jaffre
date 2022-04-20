@@ -70,5 +70,10 @@ export default class InteractivityHandler {
             }
         })
 
+        scene.redButton?.on('pointerdown', () => {
+            console.log('i clicked the button');
+            scene.socket.emit("finishRoundNow");
+        })
+
     }
 }

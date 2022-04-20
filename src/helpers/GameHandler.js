@@ -28,13 +28,18 @@ export default class GameHandler {
             return text;
         }
 
-        this.changeGameState = (gameState, message) => {
+        this.internalChangeGameState = (gameState, message) => {
             this.gameState = gameState;
             if (this.gameStateMessage) {
                 this.gameStateMessage = message;
             } 
             scene.messageStatus.setText(this.gameStateMessage);
             scene.playerName?.setText(scene.GameHandler.getPlayerName());
+        }
+
+        this.emitChangeState = (gameState, message) => {
+            console.log('emittin', gameState, message);
+            scene.socket.emit('emitChangeGameState', gameState, message);
         }
 
         this.getGameScoreText = () => {
@@ -71,7 +76,8 @@ export default class GameHandler {
             }
         }
 
-        this.refreshCards = (players, currentDropZone, deadZoneDrop, mode = 'normal') => {
+        this.refreshCards = (players, currentDropZone, deadZoneDrop, mode) => {
+            console.log('refreshing cards', players, currentDropZone, deadZoneDrop, mode);
             if (players) {
                 this.players = players;
             }
@@ -101,26 +107,34 @@ export default class GameHandler {
             return currentTurnIdx;
         }
 
-
-        this.changeTurn = () => {
-            let currentTurnIdx = this.getCurrentTurnIdx();
-            let nextTurnIdx = currentTurnIdx + 1;
-            if (nextTurnIdx === 4 /* last */) {
-                nextTurnIdx = 0;
+        this.changeturn = () => {
+            let currentturnidx = this.getcurrentturnidx();
+            let nextturnidx = currentturnidx + 1;
+            if (nextturnidx === 4 /* last */) {
+                nextturnidx = 0;
             }
-            this.players.forEach((player, idx, arr) => {
-                if (idx === currentTurnIdx) {
-                    arr[idx].isMyTurn = false;
-                } else if (idx === nextTurnIdx) {
-                    arr[idx].isMyTurn = true;
+            this.players.foreach((player, idx, arr) => {
+                if (idx === currentturnidx) {
+                    arr[idx].ismyturn = false;
+                } else if (idx === nextturnidx) {
+                    arr[idx].ismyturn = true;
                 }
             });           
-            this.changeGameState(this.gameState, "C'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
+            this.internalchangegamestate(this.gamestate, "c'est au joueur " + (nextturnidx + 1) + ' de jouer')
         }
 
-        this.endTurn = (currentDropZone, players, deadZone, winningPlayerIndex) => {
-            this.changeGameState(this.gameState, "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + "C'est \u00E0 son tour.");
+        this.endTurn = (currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound) => {
             scene.DeckHandler.endTurn(currentDropZone, players, deadZone);
+            console.log('end turn', currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound);
+            console.log('isEndOfRound', isEndOfRound);
+            let message = isEndOfRound ? "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + 'Fin de la manche.' : "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + "C'est \u00E0 son tour.";
+            if (isEndOfRound) {
+                this.emitChangeState('roundEnded', message);
+            } else {
+                this.internalChangeGameState(this.gameState, message);
+                
+            }
+            
         }
 
     }
