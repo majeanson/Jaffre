@@ -55,7 +55,6 @@ export default class Game extends Phaser.Scene {
     }
 
     update() {
-        scene.GameHandler.refreshCards
         this.playerCardZoneText?.setText(this.socket.id);
     }
 }
