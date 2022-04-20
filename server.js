@@ -268,7 +268,7 @@ const endTheTrick = () => {
 const isWinningOverAllAtouts = (atoutCard) => {
     let result = true;
     currentDropZone.forEach(card => {
-        if (isCardAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
+        if (cardIsAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
             result = false;
         }
     })
