@@ -351,7 +351,7 @@ io.on('connection', function (socket) {
         if (players) {
             const playerIdx = players?.findIndex(player => player.socketId === socket.id);
             if (playerIdx > -1) {
-                console.log(socketId, ' (Player ', playerIdx, ') has been replaced to "empty"');
+                console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
                 players[playerIdx].socketId = 'empty';
             }
         }
