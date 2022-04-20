@@ -279,9 +279,6 @@ const findTheWinningCardAndAddPoints = () => {
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
     let highestAtoutValue = -1;
-    if (cardIsAtout(card)) {
-        highestAtoutValue = highestTrickValue;
-    }
     currentDropZone?.forEach((card, idx) => {
         if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
             highestAtoutValue = cardValue;
