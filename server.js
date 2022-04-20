@@ -275,12 +275,19 @@ const isWinningOverAllAtouts = (atoutCard) => {
 
 const findTheWinningCardAndAddPoints = () => {
     let winningPlayerIndex = 0;
-    const requestedTrickColor = getCardColor(currentDropZone[0]);
-    let highestTrickValue = getCardValue(currentDropZone[0]);
+    const firstCardPlayed = currentDropZone[0];
+    const requestedTrickColor = getCardColor(firstCardPlayed);
+    let highestTrickValue = getCardValue(firstCardPlayed);
+    let highestAtoutValue = -1;
+    if (cardIsAtout(card)) {
+        highestAtoutValue = highestTrickValue;
+    }
     currentDropZone?.forEach((card, idx) => {
-        const cardValue = getCardValue(card)
         if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
-            highestTrickValue = getCardValue(card);
+            highestAtoutValue = cardValue;
+            if (highestAtoutValue > highestTrickValue) {
+                highestTrickValue = highestAtoutValue;
+            }
             winningPlayerIndex = idx;
         } else {
             if (getCardColor(card) === requestedTrickColor && getCardValue(card) > highestTrickValue) {
@@ -297,7 +304,7 @@ const findTheWinningCardAndAddPoints = () => {
         pointsToAdd = pointsToAdd + 5;
     }
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
-    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone, winningPlayerIndex);
+console.log(highestTrickValue, highestAtoutValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone, winningPlayerIndex);
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
     
     return realWinningPlayerIndex;
