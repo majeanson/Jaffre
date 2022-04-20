@@ -34,6 +34,7 @@ const io = require('socket.io')(server, {
 
 let gameState = 'init';
 let gameStateMessage = 'Bienvenue';
+let atout = '';
 let players = [];
 let observators = [];
 let currentDropZone = [];
@@ -72,41 +73,7 @@ let deadZone = [
     'ru_7'
 ];
 
-const allCards =
-    [
-        'al_0',
-        'al_1',
-        'al_2',
-        'al_3',
-        'al_4',
-        'al_5',
-        'al_6',
-        'al_7',
-        'an_0',
-        'an_1',
-        'an_2',
-        'an_3',
-        'an_4',
-        'an_5',
-        'an_6',
-        'an_7',
-        'fr_0',
-        'fr_1',
-        'fr_2',
-        'fr_3',
-        'fr_4',
-        'fr_5',
-        'fr_6',
-        'fr_7',
-        'ru_0',
-        'ru_1',
-        'ru_2',
-        'ru_3',
-        'ru_4',
-        'ru_5',
-        'ru_6',
-        'ru_7'
-    ];
+const allCards = deadZone.splice();
 
 const getShuffledCards = () => {
     const clone = allCards.slice();
@@ -129,8 +96,19 @@ const getPlayerIndex = (socketId) => {
     return foundIndex;
 }
 
+const isAllCards = (arr) => {
+    return arr.length === 32;
+}
+
+const isFirstCardPlayedOfRound = () => {
+    return isAllCards(deadZone);
+}
+
 const cardPlayed = (socketId, cardName) => {
     if (canPlayCard(socketId, cardName)) {
+        if (isFirstCardPlayedOfRound) {
+            atout = getCardColor(cardName);
+        }
         const player = getPlayerBySocketId(socketId);
         player['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
         player['isMyTurn'] = false;
@@ -178,35 +156,41 @@ const getRespectsColorPlayed = (cardName) => {
     if (currentDropZone.length === 0) {
         return true;
     } else {
-        const card = currentDropZone[0];
-        const cardColor = card.split('_')[0];
-        const refCardColor = cardName.split('_')[0];
-        return cardColor === refCardColor;
+        return getCardColor(currentDropZone[0]) === getCardColor(cardName);
     };
 }
 
+const getCardColor = (cardName) => {
+    return cardName.split('_')[0];
+}
+
+const getCardValue = (cardName) => {
+    return parseInt(cardName.split('_')[1]);
+}
+
+const cardIsAtout = (cardName) => {
+    return getCardColor(cardName) === atout;
+}
 
 const getHasRequestedColorInHand = (socketId, cardName) => {
     if (currentDropZone.length === 0) {
         return true;
     } else {
         const playerHand = getPlayerHand(socketId);
-        const requestedCardColor = currentDropZone[0]?.split('_')[0];
+        get
+        const requestedCardColor = getCardColor(currentDropZone[0]);
         let count = 0;
         playerHand?.forEach(card => {
-            const cardColor = card.split('_')[0];
+            const cardColor = getCardColor(card);
             if (cardColor === requestedCardColor) {
                 count = count = 1;
             }
         });
         return count >= 1;
     }
-
     const playerHand = getPlayerHand(socketId);
     return playerHand?.some(card => {
-        const cardColor = card.split('_')[0];
-        const refCardColor = cardName.split('_')[0];
-        return cardColor === refCardColor;
+        return getCardColor(card) === getCardColor(cardName);
     })
 }
 
@@ -248,17 +232,30 @@ const endTheTrick = () => {
     io.emit('endTheTrick', currentDropZone, players, deadZone, winningPlayerIndex);
 }
 
+const isWinningOverAllAtouts = (atoutCard) => {
+    let result = true;
+    currentDropZone.forEach(card => {
+        if (isCardAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
+            result = false;
+        }
+    })
+    return result;
+}
+
 const findTheWinningCardAndAddPoints = () => {
     let winningPlayerIndex = 0;
-    const requestedTrickColor = currentDropZone[0].split('_')[0];
-    let highestTrickValue = parseInt(currentDropZone[0].split('_')[1]);
+    const requestedTrickColor = getCardColor(currentDropZone[0]);
+    let highestTrickValue = getCardValue(currentDropZone[0]);
     currentDropZone?.forEach((card, idx) => {
-        const cardColor = card.split('_')[0];
-        const cardValue = parseInt(card.split('_')[1]);
-        console.log(cardValue, cardColor);
-        if (cardColor === requestedTrickColor && cardValue > highestTrickValue) {
-            highestTrickValue = cardValue;
-            winningPlayerIndex = idx;
+        getCardColor(card)
+        const cardValue = getCardValue(card)
+        if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
+            highestTrickValue = getCardValue(card);
+        } else {
+            if (getCardColor(card) === requestedTrickColor && getCardValue(card) > highestTrickValue) {
+                highestTrickValue = cardValue;
+                winningPlayerIndex = idx;
+            }
         }
     });
     let pointsToAdd = 1;
@@ -270,7 +267,6 @@ const findTheWinningCardAndAddPoints = () => {
     }
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
-    console.log('highestTrickValue ', highestTrickValue, 'winningPlayerIndex ', winningPlayerIndex, 'realWinningPlayerIndex ', realWinningPlayerIndex);
     return realWinningPlayerIndex;
 }
 
@@ -294,7 +290,6 @@ io.on('connection', function (socket) {
     const changeGameState = (aGameState, message) => {
         gameState = aGameState;
         gameStateMessage = message;
-        console.log('changeGameState', gameState, gameStateMessage);
         io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
     }
 
@@ -339,8 +334,6 @@ io.on('connection', function (socket) {
     io.emit('refreshCards', players, currentDropZone, deadZone);
     io.emit('refreshBackCard');
     io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
-
-    console.log('Current socket id : ', socket.id, 'Players : ', players, 'Observators : ', observators, 'Current drop zone : ', currentDropZone, 'Current dead zone : ', deadZone);
 
     socket.on('dealCards', function (socketId) {
         dealCards(socketId);

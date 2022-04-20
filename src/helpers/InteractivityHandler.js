@@ -28,7 +28,6 @@ export default class InteractivityHandler {
         });
 
         scene.input.on('drop', function (pointer, gameObject, dropZone) {
-            console.log(gameObject, dropZone, scene.GameHandler.gameState);
             if (scene.canDrop && dropZone === scene.dropZone) {
                 if (scene.GameHandler.isCurrentPlayerTurnDeck()
                     && (scene.GameHandler.gameState === 'gameStarted' || scene.GameHandler.gameState === 'gameReady')) {
