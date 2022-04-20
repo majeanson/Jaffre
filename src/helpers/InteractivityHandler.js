@@ -72,6 +72,7 @@ export default class InteractivityHandler {
 
         scene.redButton?.on('pointerdown', () => {
             console.log('i clicked the button');
+            scene.fb.addHighScore('ah', 12);
             scene.socket.emit("finishRoundNow");
         })
 

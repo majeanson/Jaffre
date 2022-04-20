@@ -267,6 +267,7 @@ const endTheTrick = () => {
     players[2]['isMyTurn'] = false;
     players[3]['isMyTurn'] = false;
     players[winningPlayerIndex]['isMyTurn'] = true;
+    const indexOfDeckHolder = 
     io.emit('endTheTrick', currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound());
 }
 

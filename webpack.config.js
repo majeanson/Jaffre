@@ -16,8 +16,16 @@ module.exports = {
             {
                 test: /\.(gif|png|jpe?g|svg|xml)$/i,
                 use: "file-loader"
-            }
+            },
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
         ]
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
     },
     devServer: {
         static: {

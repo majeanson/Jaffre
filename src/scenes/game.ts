@@ -7,6 +7,7 @@ import SocketHandler from "../helpers/SocketHandler";
 import ZoneHandler from "../helpers/ZoneHandler";
 import UIHandler from "../helpers/UIHandler";
 import AlignGrid from '../../utils/alignGrid.js';
+import FirebasePlugin from "../plugins/FirebasePlugin";
 
 export default class Game extends Phaser.Scene {
 
@@ -15,6 +16,17 @@ export default class Game extends Phaser.Scene {
             key: 'Game'
         })
     }
+
+    public CardPreloadHandler: CardPreloadHandler;
+    public CardHandler: CardHandler;
+    public DeckHandler: DeckHandler;
+    public GameHandler: GameHandler;
+    public SocketHandler: SocketHandler;
+    public ZoneHandler: ZoneHandler;
+    public InteractivityHandler: InteractivityHandler;
+    public UIHandler: UIHandler;
+    public aGrid: AlignGrid;
+    public fb: FirebasePlugin;
 
     preloadIcons = () => {     
         this.CardPreloadHandler.preloadIcons();
@@ -36,7 +48,7 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
-        console.log('allo');
+        this.fb = this.plugins.get('FirebasePlugin') as unknown as FirebasePlugin;
         this.cameras.main.setBackgroundColor('#f1f1f1');
         this.CardHandler = new CardHandler(this);
         this.DeckHandler = new DeckHandler(this);
@@ -55,6 +67,5 @@ export default class Game extends Phaser.Scene {
     }
 
     update() {
-        this.playerCardZoneText?.setText(this.socket.id);
     }
 }

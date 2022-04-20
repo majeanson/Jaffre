@@ -57,9 +57,10 @@ export default class GameHandler {
             if (!this.players || !this.players[1] || !this.players[3]) {
                 return '0';
             }
+            console.log('hi');
+            
             return parseInt(this.players[1].trickPoints) + parseInt(this.players[3].trickPoints);
         }
-
         this.refreshTexts = () => {
             scene.playerName?.setText(this.getPlayerName());
             scene.score.setText(this.getGameScoreText());
@@ -122,6 +123,7 @@ export default class GameHandler {
             });           
             this.internalchangegamestate(this.gamestate, "c'est au joueur " + (nextturnidx + 1) + ' de jouer')
         }
+        
 
         this.endTurn = (currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound) => {
             scene.DeckHandler.endTurn(currentDropZone, players, deadZone);

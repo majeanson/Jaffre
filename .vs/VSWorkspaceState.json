@@ -2,7 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\src",
+    "\\src\\assets",
+    "\\src\\assets\\icons",
     "\\src\\helpers",
+    "\\src\\plugins",
     "\\src\\scenes"
   ],
   "PreviewInSolutionExplorer": false

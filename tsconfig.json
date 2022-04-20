@@ -1,0 +1,9 @@
+{
+  "files": [
+    "src/plugins/FirebasePlugin.ts",
+    "src/scenes/game.ts"
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true
+  }
+}
