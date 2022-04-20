@@ -316,12 +316,13 @@ io.on('connection', function (socket) {
         }
     }
 
-    console.log('connected with socket id ' + socket.id, players);
+    console.log('connected with socket id ' + socket.id);
     socket.on('disconnect', function () {
         console.log('disconnected from socket id ', socket.id);
         if (players) {
             const playerIdx = players?.findIndex(player => player.socketId === socket.id);
             if (playerIdx > -1) {
+                console.log(socketId, ' (Player ', playerIdx, ') has been replaced to "empty"');
                 players[playerIdx].socketId = 'empty';
             }
         }
@@ -331,6 +332,7 @@ io.on('connection', function (socket) {
 
     const emptyPlayerIdx = players?.findIndex(player => player.socketId === 'empty');
     if (emptyPlayerIdx > -1 && !getPlayerBySocketId(socket.id)) {
+        console.log(socketId, ' has replaced "empty"', ' (Player ', emptyPlayerIdx, ')');
         players[emptyPlayerIdx].socketId = socket.id;
     }
     
