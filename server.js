@@ -27,7 +27,7 @@ const server = app.listen(PORT, () => {
 });
 const io = require('socket.io')(server, {
     cors: {
-        origin: ['https://jaffre.herokuapp.com', 'http://localhost:8080'],
+        origin: ['https://jaffre.herokuapp.com', 'http://localhost:80'],
         methods: ["GET", "POST"],
     }
 });
@@ -280,10 +280,10 @@ const findTheWinningCardAndAddPoints = () => {
     const requestedTrickColor = getCardColor(currentDropZone[0]);
     let highestTrickValue = getCardValue(currentDropZone[0]);
     currentDropZone?.forEach((card, idx) => {
-        getCardColor(card)
         const cardValue = getCardValue(card)
         if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
             highestTrickValue = getCardValue(card);
+            winningPlayerIndex = idx;
         } else {
             if (getCardColor(card) === requestedTrickColor && getCardValue(card) > highestTrickValue) {
                 highestTrickValue = cardValue;
@@ -298,7 +298,7 @@ const findTheWinningCardAndAddPoints = () => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
-    console.log(highestTrickValue, atout, requestedTrickColor);
+    console.log(highestTrickValue, atout, requestedTrickColor, realWinningPlayerIndex, currentDropZone);
     const realWinningPlayerIndex = players.findIndex(player => player.isMyTurn) + winningPlayerIndex;
     players[realWinningPlayerIndex].trickPoints += pointsToAdd;
     return realWinningPlayerIndex;
