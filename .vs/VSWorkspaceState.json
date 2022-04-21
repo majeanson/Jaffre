@@ -1,12 +1,14 @@
 {
   "ExpandedNodes": [
     "",
+    "\\dist",
     "\\src",
     "\\src\\assets",
-    "\\src\\assets\\icons",
+    "\\src\\assets\\forms",
     "\\src\\helpers",
     "\\src\\plugins",
     "\\src\\scenes"
   ],
+  "SelectedNode": "\\dist\\index.html",
   "PreviewInSolutionExplorer": false
 }

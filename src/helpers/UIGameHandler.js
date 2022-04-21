@@ -1,7 +1,7 @@
 import ZoneHandler from './ZoneHandler';
 import Align from '../../utils/align.js';
 
-export default class UIHandler{
+export default class UIGameHandler{
     constructor(scene) {
 
         this.zoneHandler = new ZoneHandler(scene);

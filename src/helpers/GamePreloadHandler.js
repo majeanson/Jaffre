@@ -34,7 +34,8 @@ import back from '../assets/cards/back.png';
 import background from '../assets/icons/background.png';
 import score from '../assets/icons/score.png';
 import redbutton from '../assets/icons/redbutton.png';
-export default class CardPreloadHandler {
+
+export default class GamePreloadHandler {
     constructor(scene) {
 
         this.preloadCards = () => {

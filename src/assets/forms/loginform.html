@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #inputform {
+            padding: 15px;
+            background-color: #931C22;
+        }
+
+        #inputform input {
+            padding: 10px;
+            font-size: 18px;
+            width: 300px;
+        }
+
+        .square {
+            margin: 1px;
+            border: 3px solid green;
+        }
+
+        .container {
+            width: calc(100% - 80px);
+            height: 220pt;
+            display: block;
+            border: 3px solid red;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginform" class="container">
+        <div class="square">
+            <input type="text"  name="nameField" placeholder="votre@email.yo" style="font-size: 18px">
+        </div>
+        <div class="square">
+            <input type="text" name="passField" placeholder="big****" style="font-size: 18px">
+        </div>
+        <div class="square">
+            <input type="button" name="playButton" value="JOUER" style="font-size: 18px">
+        </div>
+        <div class="square">
+            <input type="button" name="signUpButton" value="SE JOINDRE" style="font-size: 18px">
+        </div>
+    </div>
+</body>
+</html>

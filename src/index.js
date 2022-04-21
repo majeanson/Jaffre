@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import Game from "./scenes/game.ts";
-import FirebasePlugin from "./plugins/FirebasePlugin.ts";
+import FirebasePlugin from "./plugins/FirebasePlugin";
+import WelcomeScreen from "./scenes/welcomeScreen";
+
 var isMobile = navigator.userAgent.indexOf("Mobile");
 if (isMobile == -1) {
     isMobile = navigator.userAgent.indexOf("Tablet");
@@ -11,7 +12,10 @@ const sameConfigs = {
     physics: {
         default: 'arcade',
     },
-    scene: [Game],
+    dom: {
+        createContainer: true
+    },
+    scene: [WelcomeScreen],
     plugins: {
         global: [
             {
