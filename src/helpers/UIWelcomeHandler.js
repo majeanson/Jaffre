@@ -15,7 +15,7 @@ export default class UIWelcomeHandler{
         }
 
         this.buildLoginForm = () => {
-            var element = scene.add.dom(175, 350).createFromHTML(loginform);
+            var element = scene.add.dom(scene.sys.game.canvas.width / 2, 350).createFromHTML(loginform);
             element.setPerspective(800);
             element.addListener('click');
             scene.tweens.add({
