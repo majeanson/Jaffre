@@ -41,6 +41,12 @@ export default class SocketHandler {
         scene.socket.on('endTheTrick', (currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound) => {
             scene.GameHandler.endTurn(currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound);
         })
+
+        scene.socket.on('joinLobbySelection', () => {
+            console.log('joinnin and scne start')
+            scene.start('LobbySelection');
+            console.log('boooop')
+        })
         
     }
 }

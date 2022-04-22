@@ -2,15 +2,14 @@
 <html>
 <head>
     <style>
-        #loginform {
+        #lobbyselectionform {
             width: 80%;
             padding: 5px 5px;
             margin: 0 auto;
-            background: #676767;
             border-radius: 25px;
         }
 
-        #loginform input {
+        #lobbyselectionform input {
             width: 100%;
             padding: 12px 20px;
             margin: 8px 0;
@@ -37,18 +36,15 @@
     </style>
 </head>
 <body>
-    <div id="loginform" class="container">
+    <div id="lobbyselectionform" class="container">
         <div class="square">
-            <input type="text"  name="nameField" placeholder="jaffre@online.cool" style="font-size: 18px">
+            <input type="text"  name="lobbyNameField" placeholder="Nom du lobby" style="font-size: 18px">
         </div>
         <div class="square">
-            <input type="password" name="passField" placeholder="(  *  Y  *  )" style="font-size: 18px">
+            <input type="button" name="playButton" value="JOINDRE" style="font-size: 18px">
         </div>
         <div class="square">
-            <input type="button" name="playButton" value="JOUER" style="font-size: 18px">
-        </div>
-        <div class="square">
-            <input type="button" name="signUpButton" value="SE JOINDRE" style="font-size: 18px">
+            <input type="button" name="spectateButton" value="OBSERVER" style="font-size: 18px">
         </div>
     </div>
 </body>

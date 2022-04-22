@@ -17,13 +17,22 @@ import {
 
 import {
 	getAuth,
+	updateProfile,
 	createUserWithEmailAndPassword,
 	Auth,
 	signInWithEmailAndPassword,
 	onAuthStateChanged,
 	Unsubscribe,
-	signInAnonymously
+	signInAnonymously,
+    User
 } from 'firebase/auth'
+
+import {
+	uniqueNamesGenerator,
+	adjectives,
+	colors,
+	animals
+} from "unique-names-generator";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyC6zqlLcsmaelCjuGsYexpmBF9uO0JIwhQ",
@@ -38,9 +47,12 @@ const firebaseConfig = {
 export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 	private readonly db: Firestore
 	private readonly auth: Auth
-
 	private authStateChangedUnsubscribe: Unsubscribe
-	private onLoggedInCallback?: () => void
+	private onLoggedInCallback = (user) => {
+		console.log('loggin ', user);
+	}
+
+	private lastErrorMessage: string
 
 	constructor(manager: Phaser.Plugins.PluginManager) {
 		super(manager)
@@ -48,13 +60,20 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 		const app = initializeApp(firebaseConfig)
 		this.db = getFirestore(app)
 		this.auth = getAuth(app)
-
+		
 		this.authStateChangedUnsubscribe = onAuthStateChanged(this.auth, (user) => {
 			if (user && this.onLoggedInCallback) {
-				this.onLoggedInCallback()
+				this.onLoggedInCallback(user)
 			}
 		})
 	}
+
+	getRandomName = () => {
+		let name = uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals], length: 2 });
+		let first = name.split("_")[0];
+		let second = name.split("_")[1];
+		return first.charAt(0).toUpperCase() + first.slice(1) + second.charAt(0).toUpperCase() + second.slice(1);
+    }
 
 	destroy() {
 		this.authStateChangedUnsubscribe()
@@ -74,27 +93,62 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 		const snap = await getDoc(
 			doc(this.db, 'game-data', userId)
 		) as DocumentSnapshot<{ name: string, score: number }>
-
 		return snap.data()
 	}
 
+	loginUserSuccess(credential) {
+		this.lastErrorMessage = '';
+		return credential?.user;
+	}
+
+	signUpUserSuccess(credential) {
+		this.lastErrorMessage = '';
+		return credential?.user;
+	}
+
+	getLastErrorMessage() {
+		return this.lastErrorMessage;
+	}
+
+	extractMessage(message) {
+		var errorMessage = message;
+		const onlyMsg = errorMessage.substr(errorMessage.indexOf(':') + 1, errorMessage.length + 1);
+		return onlyMsg;
+    }
+
 	async createUserWithEmail(email: string, password: string) {
 		const credentials = await createUserWithEmailAndPassword(this.auth, email, password)
-		return credentials.user
+			.then((credential) => {
+				const name = this.getRandomName();
+				updateProfile(credential?.user, {
+					displayName: name
+				});
+				return this.loginUserSuccess(credential)
+			})
+			.catch((error) => {
+			this.lastErrorMessage = this.extractMessage(error.message);
+		});
+		return credentials?.user;
 	}
 
 	async signInUserWithEmail(email: string, password: string) {
-		const credentials = await signInWithEmailAndPassword(this.auth, email, password)
-		return credentials.user
+		const credentials = await signInWithEmailAndPassword(this.auth, email, password).then((user) => this.signUpUserSuccess(user)).catch((error) => {
+			this.lastErrorMessage = this.extractMessage(error.message);;
+		});
+		return credentials?.user;
 	}
 
 	async signInAnonymously() {
+		try {
 		const credentials = await signInAnonymously(this.auth)
-		return credentials.user
+			return credentials?.user
+		} catch {
+			return null;
+		}
 	}
 
 	getUser() {
-		return this.auth.currentUser
+		return this.auth?.currentUser;
 	}
 
 	async addHighScore(name: string, score: number) {

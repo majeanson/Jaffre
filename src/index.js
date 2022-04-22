@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import FirebasePlugin from "./plugins/FirebasePlugin";
 import WelcomeScreen from "./scenes/welcomeScreen";
+import LobbySelection from "./scenes/lobbySelection";
 
 var isMobile = navigator.userAgent.indexOf("Mobile");
 if (isMobile == -1) {
@@ -15,7 +16,10 @@ const sameConfigs = {
     dom: {
         createContainer: true
     },
-    scene: [WelcomeScreen],
+    scene: [
+        WelcomeScreen,
+        LobbySelection
+    ],
     plugins: {
         global: [
             {

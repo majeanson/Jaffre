@@ -9,50 +9,60 @@ export default class UIWelcomeHandler{
             Align.scaleToGameW(scene.game, scene.backGround, 1);
         }
 
+        this.buildErrorMessageText = () => {
+            scene.errorMessages = scene.add.text(0, 0, ' 232 ').setFontSize(80).setFontFamily("Trebuchet MS");
+            scene.aGrid.placeAtIndex(44, scene.errorMessages);
+            scene.children.bringToTop(scene.errorMessages);
+            Align.scaleToGameW(scene.game, scene.errorMessages, 0.1);
+        }
+
         this.buildUI = () => {
             this.buildBackground();
             this.buildLoginForm();
+            this.buildErrorMessageText();
+            console.log('built');
         }
 
-        this.buildLoginForm = () => {
-            var element = scene.add.dom(scene.sys.game.canvas.width / 2, 350).createFromHTML(loginform);
-            element.setPerspective(800);
-            element.addListener('click');
+        this.updateErrorMessage = () => {
+            scene.errorMessages.setText(scene.fb.getLastErrorMessage());
+            console.log(scene.errorMessages.text);
+        }
+
+        this.loginAnimationClose = () => {
             scene.tweens.add({
-                targets: element,
-                y: 300,
-                duration: 3000,
+                targets: scene.loginFormDom,
+                y: 3500,
+                duration: 2000,
                 ease: 'Power3'
             });
-            element.on('click', function (event) {
-                var inputUsername = this.getChildByName('nameField');
-                var inputPassword = this.getChildByName('passField');
-                if (event.target.name === 'signUpButton') {
-                    if (inputUsername.value !== '' && inputPassword.value !== '') {
-                        this.removeListener('click');
-                        //  Tween the login form out
-                        this.scene.tweens.add({ targets: element.rotate3d, x: 1, w: 90, duration: 3000, ease: 'Power3' });
-
-                        this.scene.tweens.add({
-                            targets: element, scaleX: 2, scaleY: 2, y: 700, duration: 3000, ease: 'Power3',
-                            onComplete: function () {
-                                element.setVisible(false);
-                            }
-                        });
-
-                        //  Populate the text with whatever they typed in as the username!
-                        text.setText('Welcome ' + inputUsername.value);
+        }
+    
+        this.buildLoginForm = () => {
+            scene.loginFormDom = scene.add.dom(scene.sys.game.canvas.width / 2, 500).createFromHTML(loginform);
+            scene.loginFormDom.setPerspective(800);
+            scene.loginFormDom.addListener('click');
+            scene.tweens.add({
+                targets: scene.loginFormDom,
+                y: 350,
+                duration: 4000,
+                ease: 'Power3'
+            });
+            scene.loginFormDom.on('click', function (event) {
+                const inputUsername = this.getChildByName('nameField');
+                const inputPassword = this.getChildByName('passField');
+                const inputUsernameValue = inputUsername.value;
+                const inputPasswordValue = inputPassword.value;
+                let user = null;
+                if (inputUsernameValue !== '' && inputPasswordValue !== '') {
+                    if (event.target.name === 'signUpButton') {
+                        user = scene.fb.createUserWithEmail(inputUsernameValue, inputPasswordValue);
                     }
                     else {
-                        //  Flash the prompt
-                        this.scene.tweens.add({ targets: text, alpha: 0.1, duration: 200, ease: 'Power3', yoyo: true });
+                        user = scene.fb.signInUserWithEmail(inputUsernameValue, inputPasswordValue);
                     }
                 }
-
-
             });
         }
 
-        
     }
 }

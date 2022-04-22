@@ -5,7 +5,6 @@ import BaseScreen from './baseScreen';
 export default class WelcomeScreen extends BaseScreen {
     private UIWelcomeHandler: UIWelcomeHandler;
     private WelcomePreloadHandler: WelcomePreloadHandler;
-
     constructor() {
         super({
             key: 'welcomeScreen'
@@ -18,11 +17,22 @@ export default class WelcomeScreen extends BaseScreen {
         this.cameras.main.setBackgroundColor('#d94141');
     }
 
+    loginNow() {
+        this.scene.start('lobbySelection');
+    }
+
     create() {
         this.UIWelcomeHandler = new UIWelcomeHandler(this);
         this.UIWelcomeHandler.buildUI();
+        if (this.fb?.getUser()) {
+            this.loginNow();
+        }
+        this.fb?.onLoggedIn(() => {
+            this.loginNow();
+        })
     }
 
     update() {
+        this.UIWelcomeHandler.updateErrorMessage();
     }
 }

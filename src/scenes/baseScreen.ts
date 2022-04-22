@@ -1,14 +1,17 @@
 import AlignGrid from '../../utils/alignGrid.js';
 import FirebasePlugin from "../plugins/FirebasePlugin";
+import SocketHandler from "../helpers/SocketHandler";
 
 export default class BaseScreen extends Phaser.Scene {
 
     private initialized: boolean;
     public aGrid: AlignGrid;
     public fb: FirebasePlugin;
+    public SocketHandler: SocketHandler;
 
     constructor(config) {
         super(config);
+        
     }
 
     public initializeUsefulVariables = () => {
@@ -24,6 +27,7 @@ export default class BaseScreen extends Phaser.Scene {
     }
 
     create() {
+        this.SocketHandler = new SocketHandler(this);
     }
 
     update() {
