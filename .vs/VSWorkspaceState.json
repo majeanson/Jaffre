@@ -9,6 +9,6 @@
     "\\src\\plugins",
     "\\src\\scenes"
   ],
-  "SelectedNode": "\\src\\index.js",
+  "SelectedNode": "\\src\\scenes\\welcomeScreen.ts",
   "PreviewInSolutionExplorer": false
 }

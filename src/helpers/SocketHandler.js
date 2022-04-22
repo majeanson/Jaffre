@@ -42,9 +42,11 @@ export default class SocketHandler {
             scene.GameHandler.endTurn(currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound);
         })
 
-        scene.socket.on('joinLobbySelection', () => {
-            console.log('joinnin and scne start')
-            scene.start('LobbySelection');
+        scene.socket.on('joinLobbySelection', (lobby, asObservator) => {
+            console.log('joinnin and scne start', lobby, asObservator)
+            if (typeof scene.joinLobbyNow === 'function') {
+                scene.joinLobbyNow(true);
+            }
             console.log('boooop')
         })
         

@@ -7,6 +7,7 @@ export default class UIGameHandler{
         this.zoneHandler = new ZoneHandler(scene);
 
         this.buildBackground = () => {
+            console.log(this, scene);
             scene.backGround = scene.add.image(0, 0, 'background');
             scene.aGrid.placeAtIndex(82, scene.backGround);
             Align.scaleToGameW(scene.game, scene.backGround, 1);
@@ -57,7 +58,7 @@ export default class UIGameHandler{
         }
 
         this.buildUI = () => {
-           // this.buildBackground();
+            this.buildBackground();
             this.buildDropZone();
             this.buildPlayerCardZone();
             this.buildScoreZone();

@@ -236,6 +236,10 @@ const getPlayerBySocketId = (socketId) => {
     return players.find(player => player.socketId === socketId);
 }
 
+const getPlayerByDisplayName = (dispName) => {
+    return players.find(user => user.dislayName === dispName);
+}
+
 const getPlayerIndexBySocketId = (socketId) => {
     return players.findIndex(player => player.socketId === socketId);
 }
@@ -385,75 +389,72 @@ const hasBonhommeRouge = () => {
     });
 }
 
+const changeGameState = (aGameState, message) => {
+    gameState = aGameState;
+    gameStateMessage = message;
+    console.log('game state changed to : ', gameState, gameStateMessage);
+    io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+}
+
 const joinLobby = (user, lobbyName, asObservator) => {
+    console.log('joinin lobby');
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
+    console.log(lobby);
     if (!lobby) {
         const newLobby = {
             name: lobbyName,
             players: [],
             observators: []
         };
-        if (asObservator) {
-            observators.push(user);
-        } else {
-            players.push(user);
-        }
+
         lobbys.push(newLobby);
         lobby = newLobby;
     }
+    if (asObservator) {
+        lobby.observators.push(user);
+    } else {
+        lobby.players.push(user);
+    }
+    const players = lobby.players;
+
+    if (players?.length < 4 && !getPlayerByDisplayName(user.displayName)) {
+        players?.push({
+            inHand: [],
+            isDeckHolder: false,
+            isMyTurn: false,
+            trickPoints: 0,
+            displayName: user.displayName
+        });
+        if (players?.length === 4) {
+            if (gameState === 'init' || gameState === 'lobby') {
+                changeGameState('gameReady', 'La partie peut d\u00E9buter');
+            }
+            else if (gameState === 'init') {
+                changeGameState('lobby', 'Le lobby doit se remplir');
+            }
+        }
+    }
+
+    io.emit('refreshCards', players, currentDropZone, deadZone);
+    io.emit('refreshBackCard');
+    io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+
+
+
     return lobby;
 }
 
+
 io.on('connection', function (socket) {
-    //const changeGameState = (aGameState, message) => {
-    //    gameState = aGameState;
-    //    gameStateMessage = message;
-    //    console.log('game state changed to : ', gameState, gameStateMessage);
-    //    io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
-    //}
-
-    //if (players?.length < 4 && !getPlayerBySocketId(socket.id)) {
-    //    players?.push({
-    //        inHand: [],
-    //        isDeckHolder: false,
-    //        isMyTurn: false,
-    //        trickPoints: 0,
-    //        socketId: socket.id
-    //    });
-    //    if (players?.length === 4) {
-    //        if (gameState === 'init' || gameState === 'lobby') {
-    //            changeGameState('gameReady', 'La partie peut d\u00E9buter');
-    //        }
-    //        else if (gameState === 'init') {
-    //            changeGameState('lobby', 'Le lobby doit se remplir');
-    //        }
-    //    }
-    //}
-
-    //console.log('connected with socket id ' + socket.id);
-    //console.log(players);
-    //socket.on('disconnect', function () {
-    //    console.log('disconnected from socket id ', socket.id);
-    //    if (players) {
-    //        const playerIdx = players?.findIndex(player => player.socketId === socket.id);
-    //        if (playerIdx > -1) {
-    //            console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
-    //            players[playerIdx].socketId = 'empty';
-    //        }
-    //    }
-    //});
-
-    
-
-    //const emptyPlayerIdx = players?.findIndex(player => player.socketId === 'empty');
-    //if (emptyPlayerIdx > -1 && !getPlayerBySocketId(socket.id)) {
-    //    console.log(socket.id, ' has replaced "empty"', ' (Player ', emptyPlayerIdx, ')');
-    //    players[emptyPlayerIdx].socketId = socket.id;
-    //}
-    
-    //io.emit('refreshCards', players, currentDropZone, deadZone);
-    //io.emit('refreshBackCard');
-    //io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+    socket.on('disconnect', function () {
+        if (players) {
+            const playerIdx = players?.findIndex(player => player.socketId === socket.id);
+            if (playerIdx > -1) {
+                console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
+                players[playerIdx].socketId = 'empty';
+            }
+        }
+    });
 
     socket.on('dealCards', function (socketId) {
         dealCards(socketId);
@@ -467,9 +468,9 @@ io.on('connection', function (socket) {
     })
 
     socket.on('joinLobby', function (user, lobbyName, asObservator) {
-        joinLobby(user, lobbyName, asObservator);
+        const lobby = joinLobby(user, lobbyName, asObservator);
         console.log('this user has joined lobby : ', user, lobbyName, asObservator);
-        io.emit('joinLobby', lobbyName, asObservator);
+        io.emit('joinLobbySelection', lobby, asObservator);
     })
 
 

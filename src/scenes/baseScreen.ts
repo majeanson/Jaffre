@@ -11,7 +11,7 @@ export default class BaseScreen extends Phaser.Scene {
 
     constructor(config) {
         super(config);
-        
+        this.SocketHandler = new SocketHandler(this);
     }
 
     public initializeUsefulVariables = () => {
@@ -27,6 +27,7 @@ export default class BaseScreen extends Phaser.Scene {
     }
 
     create() {
+        
         this.SocketHandler = new SocketHandler(this);
     }
 

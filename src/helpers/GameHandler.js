@@ -118,7 +118,8 @@ export default class GameHandler {
                 } else if (idx === nextturnidx) {
                     arr[idx].ismyturn = true;
                 }
-            });           
+            });
+            console.log('bad1');
             this.internalchangegamestate(this.gamestate, "c'est au joueur " + (nextturnidx + 1) + ' de jouer')
         }
         
@@ -131,6 +132,7 @@ export default class GameHandler {
             if (isEndOfRound) {
                 this.emitChangeState('roundEnded', message);
             } else {
+                console.log('bad2');
                 this.internalChangeGameState(this.gameState, message);
                 
             }
