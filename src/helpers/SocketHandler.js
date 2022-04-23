@@ -18,8 +18,8 @@ export default class SocketHandler {
             }
         })
 
-        scene.socket.on('changeTurn', () => {
-            scene.GameHandler.changeTurn();
+        scene.socket.on('changeTurn', (lobby) => {
+            scene.GameHandler.changeTurn(lobby);
         })
 
         scene.socket.on('changeGameState', (gameState, message, lobby) => {
@@ -32,7 +32,7 @@ export default class SocketHandler {
         scene.socket.on('cardPlayed', (cardName, index, userName, lobby) => {
             if (lobby) {
                 scene.DeckHandler.cardPlayed(cardName, index, userName, lobby.currentDropZone);
-                scene.GameHandler.changeTurn();
+                scene.GameHandler.changeTurn(lobby);
                 scene.GameHandler.refreshCards(lobby, 'normal');
             }
             return true;
