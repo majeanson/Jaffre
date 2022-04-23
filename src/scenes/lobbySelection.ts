@@ -6,18 +6,34 @@ export default class LobbySelection extends BaseScreen {
     private UILobbySelectionHandler: UILobbySelectionHandler;
     private LobbyPreloadHandler: LobbyPreloadHandler;
     public canJoinLobby: boolean;
+    public lobby: string;
+
     constructor() {
         super({
             key: 'lobbySelection'
         })
-
-
     }
 
-    joinLobbyNow(canJoinLobby) {
-        if (canJoinLobby) {
-            this.scene.start('Game');
+    joinLobbyNow(canJoinLobby, lobby) {
+        console.log('! ', canJoinLobby, ' !! ', lobby);
+        if (canJoinLobby && lobby) {
+            
+            this.fb.addUserToLobby(this.fb.getUser(), lobby.name);
+            this.scene.start('Game', { lobby: lobby });
         }
+    }
+
+    exitLobbyNow() {
+        this.fb.removeUserFromLobby(this.fb.getUser());
+        this.lobby = '';
+        this.scene.restart();
+        this.scene.bringToTop('lobbySelection');
+        this.scene.start('lobbySelection', { lobby: '' });
+    }
+
+    init(data) {
+        console.log('init AHI', data);
+        this.lobby = data.lobby;
     }
 
     preload() {
@@ -27,10 +43,22 @@ export default class LobbySelection extends BaseScreen {
         this.cameras.main.setBackgroundColor('#d94141');
     }
 
+    aNewPlayerHasEntered(user) {
+        //this.GameHandler.internalChangeGameState(this.GameHandler.gameState, user.displayName + " s'est joint au lobby.")
+    }
+
+    aNewPlayerHasLeft(user) {
+       // this.GameHandler.internalChangeGameState(this.GameHandler.gameState, user.displayName + " est parti du lobby.")
+    }
+
     create() {
-        this.UILobbySelectionHandler = new UILobbySelectionHandler(this);
-        this.UILobbySelectionHandler.buildUI();
-        this.joinLobbyNow(this.canJoinLobby);
+        this.time.delayedCall(300, () => {
+            this.UILobbySelectionHandler = new UILobbySelectionHandler(this);
+            this.UILobbySelectionHandler.buildUI();
+            if (this.fb.getUser().photoURL) {
+                this.UILobbySelectionHandler.joinLobby(this.fb.getUser().photoURL);
+            }
+        });
     }
 
     update() {

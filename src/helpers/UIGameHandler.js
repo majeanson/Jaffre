@@ -7,7 +7,7 @@ export default class UIGameHandler{
         this.zoneHandler = new ZoneHandler(scene);
 
         this.buildBackground = () => {
-            console.log(this, scene);
+            scene.cameras.main.setBackgroundColor('#ffffff');
             scene.backGround = scene.add.image(0, 0, 'background');
             scene.aGrid.placeAtIndex(82, scene.backGround);
             Align.scaleToGameW(scene.game, scene.backGround, 1);
@@ -27,6 +27,10 @@ export default class UIGameHandler{
             scene.redButton = scene.add.image(0, 0, 'redbutton').setInteractive();;
             scene.aGrid.placeAtIndex(7, scene.redButton);
             Align.scaleToGameW(scene.game, scene.redButton, 0.3);
+            //scene.aGrid.showNumbers();
+            scene.exitLobbyButton = scene.add.image(0, 0, 'exit').setInteractive();;
+            scene.aGrid.placeAtIndex(0.15, scene.exitLobbyButton);
+            Align.scaleToGameW(scene.game, scene.exitLobbyButton, 0.15);
         }
 
         this.buildDropZone = () => {

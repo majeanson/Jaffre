@@ -5,22 +5,21 @@ export default class Align
 		obj.displayWidth=game.config.width*per;
 		obj.scaleY=obj.scaleX;
 	}
-	static centerH(obj)
+	static centerH(game, obj)
 	{
-		obj.x = this.game.config.width/2-obj.displayWidth/2;
+		obj.x = game.config.width/2-obj.displayWidth/2;
 	}
-	static centerV(obj)
+	static centerV(game, obj)
 	{
-		obj.y = this.game.config.height/2-obj.displayHeight/2;
+		obj.y = game.config.height/2-obj.displayHeight/2;
 	}
-	static center2(obj)
+	static center2(game,obj)
 	{
-		obj.x = this.game.config.width/2-obj.displayWidth/2;
-		obj.y = this.game.config.height/2-obj.displayHeight/2;
+		obj.x = game.config.width/2-obj.displayWidth/2;
 	}
-	static center(obj)
+	static center(game,obj)
 	{
-		obj.x = this.game.config.width/2;
-		obj.y = this.game.config.height/2;
+		obj.x = game.config.width/2;
+		obj.y = game.config.height/2;
 	}
 }

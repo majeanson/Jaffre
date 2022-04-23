@@ -1,31 +1,28 @@
 export default class GameHandler {
     constructor(scene) {
-
-        this.gameState = 'init';
-        this.gameStateMessage = 'Bienvenue';
-        this.playerTurn = 'player1';
-
-        this.players = [];
-
         this.isCurrentPlayerTurnDeck = () => {
             const currentPlayer = this.getCurrentPlayer();
+            console.log('isCurrentPlayerTurnDeck', currentPlayer);
             return currentPlayer ? currentPlayer['isMyTurn'] === true : false;
         }
 
         this.getPlayerName = () => {
-            let foundIndex = -1;
-            this.players.forEach((player, index) => {
-                if (player.socketId === scene.socket.id) {
-                    foundIndex = index
+            if (scene.lobby?.players) {
+                const foundIndex = scene.lobby?.players?.findIndex(player => player?.displayName == scene.fb.getUser().displayName);
+                const isMyTurn = scene.lobby?.players[foundIndex]?.isMyTurn;
+                const isDeckHolder = scene.lobby?.players[foundIndex]?.isDeckHolder;
+                if (scene.fb.getUser()) {
+                    let text = scene.fb.getUser().displayName + ' Joueur ' + (foundIndex + 1);
+                    isMyTurn ? text = text + ' -\u00C0 vous de jouer !' : '';
+                    isDeckHolder ? text = text + ' [DEALER]' : '';
+                    text = text + '\u000A' + scene.lobby?.name;
+                    return text;
                 }
-            });
-            
-            const isMyTurn = this.players[foundIndex]?.isMyTurn;
-            const isDeckHolder = this.players[foundIndex]?.isDeckHolder;         
-            let text = scene.socket.id + ' Joueur ' + (foundIndex + 1);
-            isMyTurn ? text = text + ' -\u00C0 vous de jouer !' : '';
-            isDeckHolder ? text = text + ' [DEALER]' : '';
-            return text;
+            }
+            else {
+                return '';
+            }
+
         }
 
         this.internalChangeGameState = (gameState, message) => {
@@ -33,13 +30,12 @@ export default class GameHandler {
             if (this.gameStateMessage) {
                 this.gameStateMessage = message;
             } 
-            scene.messageStatus.setText(this.gameStateMessage);
+            scene.messageStatus?.setText(this.gameStateMessage);
             scene.playerName?.setText(scene.GameHandler.getPlayerName());
         }
 
-        this.emitChangeState = (gameState, message) => {
-            console.log('emittin', gameState, message);
-            scene.socket.emit('emitChangeGameState', gameState, message);
+        this.emitChangeState = (gameState, message, lobby) => {
+            scene.socket.emit('emitChangeGameState', gameState, message, lobby);
         }
 
         this.getGameScoreText = () => {
@@ -47,58 +43,52 @@ export default class GameHandler {
         }
 
         this.getPlayer1AndPlayer3Score = () => {
-            if (!this.players || !this.players[0] || !this.players[2]) {
+            if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
                 return '0';
             }
-            return parseInt(this.players[0]?.trickPoints) + parseInt(this.players[2]?.trickPoints);
+            return parseInt(scene.lobby?.players[0]?.trickPoints) + parseInt(scene.lobby?.players[2]?.trickPoints);
         }
 
         this.getPlayer2AndPlayer4Score = () => {
-            if (!this.players || !this.players[1] || !this.players[3]) {
+            if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
                 return '0';
             }
-            return parseInt(this.players[1].trickPoints) + parseInt(this.players[3].trickPoints);
+            return parseInt(scene.lobby?.players[1].trickPoints) + parseInt(scene.lobby?.players[3].trickPoints);
         }
         this.refreshTexts = () => {
             scene.playerName?.setText(this.getPlayerName());
-            scene.score.setText(this.getGameScoreText());
-            scene.messageStatus.setText(this.gameStateMessage);
+            scene.score?.setText(this.getGameScoreText());
+            scene.messageStatus?.setText(this.gameStateMessage);
         }
 
-        this.refreshBackCard = () => {
+        this.refreshBackCard = (lobby) => {
             if (this.gameState === 'gameReady' && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
-                scene.backCard.setInteractive();
-                scene.backCard.setTint('0xffffff');
+                scene.backCard?.setInteractive();
+                scene.backCard?.setTint('0xffffff');
             } else {
-                scene.backCard.setTint(0x808080, 0xC0C0C0, 0xC0C0C0, 0x808080);
-                scene.backCard.disableInteractive(); //to readd
+                scene.backCard?.setTint(0x808080, 0xC0C0C0, 0xC0C0C0, 0x808080);
+                scene.backCard?.disableInteractive(); //to readd
             }
         }
 
-        this.refreshCards = (players, currentDropZone, deadZoneDrop, mode) => {
-            console.log('refreshing cards', players, currentDropZone, deadZoneDrop, mode);
-            if (players) {
-                this.players = players;
-            }
-            scene.DeckHandler.renderCards(players, currentDropZone, deadZoneDrop, mode);
+        this.refreshCards = (lobby, mode) => {
+            console.log('refreshing cards', lobby);
+            scene.DeckHandler.renderCards(lobby, mode);
             this.refreshTexts();
-        }
-
-        this.getPlayerBySocketId = (socketId) => {
-            return this.players.find(player => player.socketId === socketId)
+            scene.lobby = lobby;
         }
 
         this.getCurrentPlayer = () => {
-            return this.getPlayerBySocketId(scene.socket.id);
+            return scene.lobby?.players.find(player => player.displayName == scene.fb.getUser().displayName);
         }
 
         this.thereIsADeckHolder = () => {
-            return this.players.some(player => player.isDeckHolder);
+            return scene.lobby?.players.some(player => player.isDeckHolder);
         }
 
         this.getCurrentTurnIdx = () => {
             let currentTurnIdx = 0;
-            this.players.forEach((player, idx) => {
+            scene.lobby?.players.forEach((player, idx) => {
                 if (player.isMyTurn) {
                     currentTurnIdx = idx;
                 }
@@ -112,27 +102,23 @@ export default class GameHandler {
             if (nextturnidx === 4 /* last */) {
                 nextturnidx = 0;
             }
-            this.players.foreach((player, idx, arr) => {
+            scene.lobby?.players.foreach((player, idx, arr) => {
                 if (idx === currentturnidx) {
                     arr[idx].ismyturn = false;
                 } else if (idx === nextturnidx) {
                     arr[idx].ismyturn = true;
                 }
             });
-            console.log('bad1');
-            this.internalchangegamestate(this.gamestate, "c'est au joueur " + (nextturnidx + 1) + ' de jouer')
+            this.internalChangeGameState(scene.lobby.gameState, "c'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
         }
         
 
-        this.endTurn = (currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound) => {
-            scene.DeckHandler.endTurn(currentDropZone, players, deadZone);
-            console.log('end turn', currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound);
-            console.log('isEndOfRound', isEndOfRound);
+        this.endTurn = (lobby, winningPlayerIndex, isEndOfRound) => {
+            scene.DeckHandler.endTurn(lobby);
             let message = isEndOfRound ? "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + 'Fin de la manche.' : "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + "C'est \u00E0 son tour.";
             if (isEndOfRound) {
-                this.emitChangeState('roundEnded', message);
+                this.emitChangeState('roundEnded', message, lobby);
             } else {
-                console.log('bad2');
                 this.internalChangeGameState(this.gameState, message);
                 
             }

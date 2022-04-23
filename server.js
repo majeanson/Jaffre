@@ -26,22 +26,14 @@ const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
 const devEnv = process.env.NODE_ENV !== "production";
-console.log(process.env.NODE_ENV);
 const io = require('socket.io')(server, {
     cors: {
         origin: devEnv ? 'http://localhost:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
         methods: ["GET", "POST"],
     }
 });
-
-let gameState = 'init';
-let gameStateMessage = 'Bienvenue';
-let atout = '';
-let players = [];
-let observators = [];
-let currentDropZone = [];
-let lobbys = [];
-let deadZone = [
+const socketIds = [];
+const fullDeadZone = [
     'al_0',
     'al_1',
     'al_2',
@@ -76,91 +68,49 @@ let deadZone = [
     'ru_7'
 ];
 
-const allCards =
-    [
-        'al_0',
-        'al_1',
-        'al_2',
-        'al_3',
-        'al_4',
-        'al_5',
-        'al_6',
-        'al_7',
-        'an_0',
-        'an_1',
-        'an_2',
-        'an_3',
-        'an_4',
-        'an_5',
-        'an_6',
-        'an_7',
-        'fr_0',
-        'fr_1',
-        'fr_2',
-        'fr_3',
-        'fr_4',
-        'fr_5',
-        'fr_6',
-        'fr_7',
-        'ru_0',
-        'ru_1',
-        'ru_2',
-        'ru_3',
-        'ru_4',
-        'ru_5',
-        'ru_6',
-        'ru_7'
-    ];
+let lobbys = [];
 
 const getShuffledCards = () => {
-    const clone = allCards.slice();
+    const clone = fullDeadZone.slice();
     clone.sort(() => 0.5 - Math.random());
     return clone;
 }
 
-const getPlayerHand = (socketId) => {
-    return getPlayerBySocketId(socketId).inHand;
+const getPlayerHand = (lobby, userName) => {
+    console.log('wrong??', lobby, userName);
+    return getPlayerByDisplayName(lobby, userName)?.inHand;
 }
 
-const getPlayerIndex = (socketId) => {
-    let foundIndex = 0;
-    players.forEach((player, idx) => {
-        if (player.socketId == socketId) {
-            foundIndex = idx;
-        }
-        idx += 1;
-    });
-    return foundIndex;
-}
-
-const isFirstCardPlayedOfRound = () => {
-    const sumOfCardsInHandOfPlayers = players.reduce((a, b) => +a + +b.inHand.length, 0);
+const isFirstCardPlayedOfRound = (lobby) => {
+    const sumOfCardsInHandOfPlayers = lobby.players.reduce((a, b) => +a + +b.inHand.length, 0);
     return sumOfCardsInHandOfPlayers === 32;
 }
 
-const isEndOfRound = () => {
-    return deadZone.length === 32;
+const isEndOfRound = (lobby) => {
+    return lobby.deadZone.length === 32;
 }
 
-const cardPlayed = (socketId, cardName) => {
-    if (canPlayCard(socketId, cardName)) {
-        if (isFirstCardPlayedOfRound()) {
+const cardPlayed = (lobby, userName, cardName) => {
+    if (canPlayCard(lobby, userName, cardName)) {
+        if (isFirstCardPlayedOfRound(lobby)) {
             atout = getCardColor(cardName);
-            console.log('atout is now :', atout);
         }
-        const player = getPlayerBySocketId(socketId);
+        const player = getPlayerByDisplayName(lobby, userName);
         player['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
         player['isMyTurn'] = false;
-        const playerIndex = getPlayerIndex(socketId);
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+        console.log(playerIndex, lobby.players);
         let nextPlayerIndex = playerIndex + 1;
         if (nextPlayerIndex === 4) {
             nextPlayerIndex = 0;
         }
-        players[nextPlayerIndex]['isMyTurn'] = true;
-
-        currentDropZone.push(cardName);
+        if (player[nextPlayerIndex]) {
+            player[nextPlayerIndex]['isMyTurn'] = true;
+        }
+        lobby.currentDropZone.push(cardName);
         return true;
     }
+
     return false;
 }
 
@@ -170,32 +120,37 @@ const arraymove = (arr, fromIndex, toIndex) => {
     arr.splice(toIndex, 0, element);
 }
 
-const cardMovedInHand = (socketId, card, index) => {
-
+const cardMovedInHand = (lobby, userName, card, index) => {
+    const playerIdx = getPlayerIndexByDisplayName(lobby, userName);
     if (index > -1) {
-        const movingCardIdx = getPlayerCardIdx(socketId, card);
+        const movingCardIdx = getPlayerCardIdx(lobby, userName, card);
         if (movingCardIdx > -1) {
-            arraymove(getPlayerHand(socketId), movingCardIdx, index)
+            arraymove(lobby.players[playerIdx].inHand, movingCardIdx, index)
         }
     }
     return false;
 }
 
-const getPlayerCardIdx = (socketId, card) => {
-    return getPlayerHand(socketId)?.findIndex(aCard => aCard === card);
+const getPlayerCardIdx = (lobby, userName, card) => {
+   
+    return getPlayerHand(lobby, userName).findIndex(aCard => { console.log(aCard, card); return aCard === card });
 }
 
-const canPlayCard = (socketId, cardName) => {
-    const respectsColorPlayed = getRespectsColorPlayed(cardName);
-    const hasRequestedColorInHand = getHasRequestedColorInHand(socketId, cardName);
+const findPlayerInLobbys = (user) => {
+    return lobbys.find(lobby => lobby.players.find(player => player.displayName == user.displayName));
+}
+
+const canPlayCard = (lobby, userName, cardName) => {
+    const respectsColorPlayed = getRespectsColorPlayed(lobby, cardName);
+    const hasRequestedColorInHand = getHasRequestedColorInHand(lobby, userName, cardName);
     return respectsColorPlayed || !hasRequestedColorInHand;
 }
 
-const getRespectsColorPlayed = (cardName) => {
-    if (currentDropZone.length === 0) {
+const getRespectsColorPlayed = (lobby, cardName) => {
+    if (lobby.currentDropZone.length === 0) {
         return true;
     } else {
-        return getCardColor(currentDropZone[0]) === getCardColor(cardName);
+        return getCardColor(lobby.currentDropZone[0]) === getCardColor(cardName);
     };
 }
 
@@ -211,12 +166,12 @@ const cardIsAtout = (cardName) => {
     return getCardColor(cardName) === atout;
 }
 
-const getHasRequestedColorInHand = (socketId, cardName) => {
-    if (currentDropZone.length === 0) {
+const getHasRequestedColorInHand = (lobby, userName, cardName) => {
+    if (lobby.currentDropZone.length === 0) {
         return true;
     } else {
-        const playerHand = getPlayerHand(socketId);
-        const requestedCardColor = getCardColor(currentDropZone[0]);
+        const playerHand = getPlayerHand(lobby, userName);
+        const requestedCardColor = getCardColor(lobby.currentDropZone[0]);
         let count = 0;
         playerHand?.forEach(card => {
             const cardColor = getCardColor(card);
@@ -226,59 +181,49 @@ const getHasRequestedColorInHand = (socketId, cardName) => {
         });
         return count >= 1;
     }
-    const playerHand = getPlayerHand(socketId);
-    return playerHand?.some(card => {
-        return getCardColor(card) === getCardColor(cardName);
-    })
 }
 
-const getPlayerBySocketId = (socketId) => {
-    return players.find(player => player.socketId === socketId);
+const getPlayerByDisplayName = (lobby, dispName) => {
+    return lobby.players.find(user => user.displayName == dispName);
 }
 
-const getPlayerByDisplayName = (dispName) => {
-    return players.find(user => user.dislayName === dispName);
+const getPlayerIndexByDisplayName = (lobby, dispName) => {
+    return lobby.players.findIndex(user => user.displayName == dispName);
 }
 
-const getPlayerIndexBySocketId = (socketId) => {
-    return players.findIndex(player => player.socketId === socketId);
-}
-
-const dealCards = (socketId) => {
+const dealCards = (user, lobby) => {
     const shuffledCards = getShuffledCards();
-    currentDropZone = [];
-    players.forEach(player => {
-        player['inHand'] = [];
-        player['inHand'] = shuffledCards.splice(0, 8);
-        player['isDeckHolder'] = false;
-        player['isMyTurn'] = false;
+    lobby.currentDropZone = [];
+    lobby.deadZone = [];
+    lobby.players.forEach((player, idx) => {
+        lobby.players[idx]['inHand'] = shuffledCards.splice(0, 8);
+        lobby.players[idx]['isDeckHolder'] = false;
+        lobby.players[idx]['isMyTurn'] = false;
     });
-    const player = getPlayerBySocketId(socketId);
-    if (player) {
-        getPlayerBySocketId(socketId)['isDeckHolder'] = true;
-        getPlayerBySocketId(socketId)['isMyTurn'] = true;
-        arraymove(players, getPlayerIndexBySocketId(socketId), 0);
+    const playerIdx = getPlayerIndexByDisplayName(lobby, user.displayName);
+    if (playerIdx > -1) {
+        lobby.players[playerIdx]['isDeckHolder'] = true;
+        lobby.players[playerIdx]['isMyTurn'] = true;
+        arraymove(lobby.players, playerIdx, 0);
     }
-    console.log(players);
-    deadZone = [];
+    lobby.deadZone = [];
 }
 
-const endTheTrick = () => {
+const endTheTrick = (lobby) => {
     const winningPlayerIndex = findTheWinningCardAndAddPoints()
-    deadZone.push(...currentDropZone);
-    currentDropZone = [];
-    players[0]['isMyTurn'] = false;
-    players[1]['isMyTurn'] = false;
-    players[2]['isMyTurn'] = false;
-    players[3]['isMyTurn'] = false;
-    players[winningPlayerIndex]['isMyTurn'] = true;
-    const indexOfDeckHolder = 
-    io.emit('endTheTrick', currentDropZone, players, deadZone, winningPlayerIndex, isEndOfRound());
+    lobby.deadZone.push(...lobby.currentDropZone);
+    lobby.currentDropZone = [];
+    lobby.players[0]['isMyTurn'] = false;
+    lobby.players[1]['isMyTurn'] = false;
+    lobby.players[2]['isMyTurn'] = false;
+    lobby.players[3]['isMyTurn'] = false;
+    lobby.players[winningPlayerIndex]['isMyTurn'] = true;
+    io.emit('endTheTrick', lobby, winningPlayerIndex, isEndOfRound());
 }
 
-const isWinningOverAllAtouts = (atoutCard) => {
+const isWinningOverAllAtouts = (lobby, atoutCard) => {
     let result = true;
-    currentDropZone.forEach(card => {
+    lobby.currentDropZone.forEach(card => {
         if (cardIsAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
             result = false;
         }
@@ -332,16 +277,16 @@ const getPlayerIndexFromCardOrder = (cardOrder) => {
     }
 }
 
-const findTheWinningCardAndAddPoints = () => {
+const findTheWinningCardAndAddPoints = (lobby) => {
     let winningPlayerIndex = getPlayerIndexFromCardOrder(0);
-    const firstCardPlayed = currentDropZone[0];
+    const firstCardPlayed = lobby.currentDropZone[0];
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
     let highestAtoutValue = -1;
     if (cardIsAtout(firstCardPlayed)) {
         highestAtoutValue = highestTrickValue;
     };
-    currentDropZone?.forEach((card, idx) => {
+    lobby.currentDropZone?.forEach((card, idx) => {
        
         const cardValue = getCardValue(card);
         const realPlayerIndex = getPlayerIndexFromCardOrder(idx);
@@ -366,58 +311,66 @@ const findTheWinningCardAndAddPoints = () => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
-    console.log(highestTrickValue, highestAtoutValue, atout, requestedTrickColor, currentDropZone, winningPlayerIndex);
     players[winningPlayerIndex].trickPoints += pointsToAdd;
     
     return winningPlayerIndex;
 }
 
 
-const hasBonhommeBrun = () => {
-    return currentDropZone?.some((card) => {
+const hasBonhommeBrun = (lobby) => {
+    return lobby.currentDropZone?.some((card) => {
         const cardColor = card.split('_')[0];
         const cardValue = card.split('_')[1];
         return (cardColor === 'al' && cardValue === '0');
     });
 }
 
-const hasBonhommeRouge = () => {
-    return currentDropZone?.some((card) => {
+const hasBonhommeRouge = (lobby) => {
+    return lobby.currentDropZone?.some((card) => {
         const cardColor = card.split('_')[0];
         const cardValue = card.split('_')[1];
         return (cardColor === 'fr' && cardValue === '0')
     });
 }
 
-const changeGameState = (aGameState, message) => {
+const changeGameState = (aGameState, message, lobby) => {
     gameState = aGameState;
     gameStateMessage = message;
     console.log('game state changed to : ', gameState, gameStateMessage);
-    io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
+    io.emit('changeGameState', gameState, gameStateMessage, lobby);
+}
+
+const exitLobby = (userName, lobbyName) => {
+    console.log('exitin lobby');
+    let lobby = lobbys.find(lobby => lobby.name === lobbyName);
+    if (lobby) {
+        lobby.players = lobby.players.filter(player => player.displayName == userName);
+    }
+    return lobby;
 }
 
 const joinLobby = (user, lobbyName, asObservator) => {
-    console.log('joinin lobby');
+    console.log('joinin lobby ', lobbyName);
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
-    console.log(lobby);
     if (!lobby) {
         const newLobby = {
             name: lobbyName,
             players: [],
-            observators: []
+            observators: [],
+            gameState: 'init',
+            gameStateMessage: 'Bienvenue',
+            currentDropZone: [],
+            deadZone: fullDeadZone.slice(),
+            atout: ''
         };
 
         lobbys.push(newLobby);
         lobby = newLobby;
     }
-    if (asObservator) {
-        lobby.observators.push(user);
-    } else {
-        lobby.players.push(user);
-    }
     const players = lobby.players;
-
-    if (players?.length < 4 && !getPlayerByDisplayName(user.displayName)) {
+       
+    if (players?.length < 4 && !getPlayerByDisplayName(lobby, user.displayName)) {
+        console.log('ADDING TO PLAYERS : ' + user.displayName);
         players?.push({
             inHand: [],
             isDeckHolder: false,
@@ -426,125 +379,120 @@ const joinLobby = (user, lobbyName, asObservator) => {
             displayName: user.displayName
         });
         if (players?.length === 4) {
-            if (gameState === 'init' || gameState === 'lobby') {
-                changeGameState('gameReady', 'La partie peut d\u00E9buter');
+            if (lobby.gameState === 'init' || lobby.gameState === 'lobby') {
+                changeGameState('gameReady', 'La partie peut d\u00E9buter', lobby);
             }
-            else if (gameState === 'init') {
-                changeGameState('lobby', 'Le lobby doit se remplir');
+            else if (lobby.gameState === 'init') {
+                changeGameState('lobby', 'Le lobby doit se remplir', lobby);
             }
         }
     }
-
-    io.emit('refreshCards', players, currentDropZone, deadZone);
-    io.emit('refreshBackCard');
-    io.emit('changeGameState', gameState, gameStateMessage, players, currentDropZone, deadZone);
-
-
-
+    io.emit('refreshCards', lobby);
+    io.emit('refreshBackCard', lobby);
+    io.emit('changeGameState', lobby);
     return lobby;
 }
 
-
 io.on('connection', function (socket) {
     socket.on('disconnect', function () {
-        if (players) {
-            const playerIdx = players?.findIndex(player => player.socketId === socket.id);
-            if (playerIdx > -1) {
-                console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
-                players[playerIdx].socketId = 'empty';
-            }
-        }
     });
 
-    socket.on('dealCards', function (socketId) {
-        dealCards(socketId);
-        io.emit('refreshCards', players, currentDropZone, deadZone);
-        io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur 1 \u00E0 jouer", players, currentDropZone, deadZone);
-        io.emit('refreshBackCard');
+    socket.on('dealCards', function (user, lobby) {
+        dealCards(user, lobby);
+        io.emit('refreshCards', lobby);
+        io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur 1 \u00E0 jouer", lobby);
+        io.emit('refreshBackCard', lobby);
     })
 
     socket.on('userLoggedIn', function (socketId, user) {
+        socketIds[socketId] = user;
         console.log('this user has logged in : ', user, socketId);
     })
 
     socket.on('joinLobby', function (user, lobbyName, asObservator) {
         const lobby = joinLobby(user, lobbyName, asObservator);
         console.log('this user has joined lobby : ', user, lobbyName, asObservator);
-        io.emit('joinLobbySelection', lobby, asObservator);
+        io.emit('joinLobbySelection', user, lobby, asObservator);
+    })
+
+    socket.on('exitLobby', function (userName, lobbyName) {
+        exitLobby(userName, lobbyName);
+        console.log('this user has exited lobby : ', userName, lobbyName);
+        io.emit('exitLobby', userName);
+        
     })
 
 
-    socket.on('changeGameState', function (gameState, message) {
-        changeGameState(gameState, message);
-        io.emit('changeGameState', gameState, message, players, currentDropZone, deadZone);
+    socket.on('changeGameState', function (gameState, message, lobby) {
+        changeGameState(gameState, message, lobby);
+        io.emit('changeGameState', gameState, message, lobby);
     })
 
-    socket.on('cardPlayed', function (socketId, cardName) {
-        let result = cardPlayed(socketId, cardName);
+    socket.on('cardPlayed', function (lobby, userName, cardName) {
+        console.log('card played YO~~~~~~~~~~~~~~~~~~~~~~~');
+        let result = cardPlayed(lobby, userName, cardName);
         if (result) {
-            let index = currentDropZone.length;
+            let index = lobby.currentDropZone.length;
 
-            io.emit('cardPlayed', socketId, cardName, index, result, currentDropZone, players, deadZone);
-            const dropZoneIsFull = currentDropZone.length === 4;
+            io.emit('cardPlayed', cardName, index, userName, lobby);
+            const dropZoneIsFull = lobby.currentDropZone.length === 4;
             if (dropZoneIsFull) {
-                endTheTrick();
+                endTheTrick(lobby);
             }
         }
     })
 
-    socket.on('cardMovedInHand', function (socketId, card, index) {
-        cardMovedInHand(socketId, card, index);
-        io.emit('cardMovedInHand', socketId, players, currentDropZone, deadZone);
+    socket.on('cardMovedInHand', function (lobby, userName, card, index) {
+        cardMovedInHand(lobby, userName, card, index);
+        io.emit('cardMovedInHand', lobby, userName);
     })
 
-    socket.on('emitChangeGameState', function (gameState, message) {
-        console.log('emit Change Game State', gameState, message);
-        changeGameState(gameState, message);
+    socket.on('emitChangeGameState', function (gameState, message, lobby) {
+        changeGameState(gameState, message, lobby);
     })
 
-    socket.on('finishRoundNow', function () {
-        console.log('finishing round ');
-        players[0]['inHand'] = [];
-        players[1]['inHand'] = [];
-        players[2]['inHand'] = [];
-        players[3]['inHand'] = [];
-        io.emit('endTheTrick', ['al_1', 'al_2', 'al_3', 'al_4'], players,
+    socket.on('finishRoundNow', function (lobby) {
+        lobby.players[0]['inHand'] = [];
+        //lobby.players[1]['inHand'] = [];
+        //lobby.players[2]['inHand'] = [];
+        //lobby.players[3]['inHand'] = [];
+        lobby.currentDropZone = ['al_1', 'al_2', 'al_3', 'al_4'];
+        lobby.deadZone = [
+            'al_0',
+            'al_1',
+            'al_2',
+            'al_3',
+            'al_4',
+            'al_5',
+            'al_6',
+            'al_7',
+            'an_0',
+            'an_1',
+            'an_2',
+            'an_3',
+            'an_4',
+            'an_5',
+            'an_6',
+            'an_7',
+            'fr_0',
+            'fr_1',
+            'fr_2',
+            'fr_3',
+            'fr_4',
+            'fr_5',
+            'fr_6',
+            'fr_7',
+            'ru_0',
+            'ru_1',
+            'ru_2',
+            'ru_3',
+            'ru_4',
+            'ru_5',
+            'ru_6',
+            'ru_7'
+        ];
 
-            [
-                'al_0',
-                'al_1',
-                'al_2',
-                'al_3',
-                'al_4',
-                'al_5',
-                'al_6',
-                'al_7',
-                'an_0',
-                'an_1',
-                'an_2',
-                'an_3',
-                'an_4',
-                'an_5',
-                'an_6',
-                'an_7',
-                'fr_0',
-                'fr_1',
-                'fr_2',
-                'fr_3',
-                'fr_4',
-                'fr_5',
-                'fr_6',
-                'fr_7',
-                'ru_0',
-                'ru_1',
-                'ru_2',
-                'ru_3',
-                'ru_4',
-                'ru_5',
-                'ru_6',
-                'ru_7'
-            ],
-                3, true);
+        io.emit('endTheTrick', lobby, 3, true);
     })
 
     

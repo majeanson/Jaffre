@@ -20,12 +20,15 @@ export default class UILobbySelectionHandler {
         this.buildUI = () => {
             this.buildBackground();
             this.buildLobbySelectionForm();
+            this.buildText();
         }
 
-        this.emitJoinLobby = (inputLobbyNameValue, asObservator) => {
-            scene.canJoinLobby = true;
-            scene.socket.emit("joinLobby", scene.fb.getUser(), inputLobbyNameValue, asObservator);
-           
+        this.buildText = () => {
+            scene.helloText = scene.add.text(0, 0, '').setFontSize(140).setFontFamily("Trebuchet MS");
+            scene.helloText.setText("Bonjour " + scene.fb.getUser().displayName + ' ! Joint un lobby ici');
+            scene.aGrid.placeAtIndex(45, scene.helloText);
+            Align.scaleToGameW(scene.game, scene.helloText, 0.85);
+            Align.center2(scene.game, scene.helloText);
         }
 
         this.getRandomName = () => {
@@ -33,6 +36,15 @@ export default class UILobbySelectionHandler {
             let first = name.split("_")[0];
             let second = name.split("_")[1];
             return first.charAt(0).toUpperCase() + first.slice(1) + second.charAt(0).toUpperCase() + second.slice(1);
+        }
+
+        this.joinLobby = (lobbyName) => {
+            scene.canJoinLobby = true;
+            scene.socket.emit("joinLobby", scene.fb.getUser(), lobbyName, false);
+        }
+
+        const selfJoinLobby = (inputLobbyNameValue) => {
+            this.joinLobby(inputLobbyNameValue);
         }
 
         this.buildLobbySelectionForm = () => {
@@ -47,12 +59,11 @@ export default class UILobbySelectionHandler {
             });
             scene.lobbySelectionForm.getChildByName('lobbyNameField').value = this.getRandomName();
             scene.lobbySelectionForm.on('click', function (event) {
-                console.log(event);
                 const inputLobbyName = this.getChildByName('lobbyNameField');
                 const inputLobbyNameValue = inputLobbyName.value;
                 const asObservator = event.target.name !== 'playButton';
                 if (inputLobbyNameValue !== '' && event.target.name === 'playButton' || event.target.name === 'spectateButton') {
-                    self.emitJoinLobby(inputLobbyNameValue, asObservator);
+                    selfJoinLobby(inputLobbyNameValue);
                 }
             });
         }

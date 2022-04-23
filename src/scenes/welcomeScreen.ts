@@ -17,18 +17,18 @@ export default class WelcomeScreen extends BaseScreen {
         this.cameras.main.setBackgroundColor('#d94141');
     }
 
-    loginNow() {
-        this.scene.start('lobbySelection');
+    loginNow(lobby) {
+        this.scene.start('lobbySelection', { lobby: lobby });
     }
 
     create() {
         this.UIWelcomeHandler = new UIWelcomeHandler(this);
         this.UIWelcomeHandler.buildUI();
         if (this.fb?.getUser()) {
-            this.loginNow();
+            this.loginNow(null);
         }
         this.fb?.onLoggedIn(() => {
-            this.loginNow();
+            this.loginNow(null);
         })
     }
 

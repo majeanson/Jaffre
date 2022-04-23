@@ -34,6 +34,7 @@ import back from '../assets/cards/back.png';
 import background from '../assets/icons/background.png';
 import score from '../assets/icons/score.png';
 import redbutton from '../assets/icons/redbutton.png';
+import exit from '../assets/icons/exit.png';
 
 export default class GamePreloadHandler {
     constructor(scene) {
@@ -77,6 +78,7 @@ export default class GamePreloadHandler {
         this.preloadIcons = () => {
             scene.load.image('score', score);
             scene.load.image('redbutton', redbutton);
+            scene.load.image('exit', exit);
         }
 
         this.preloadBackground = () => {

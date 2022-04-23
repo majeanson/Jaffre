@@ -20,12 +20,10 @@ export default class UIWelcomeHandler{
             this.buildBackground();
             this.buildLoginForm();
             this.buildErrorMessageText();
-            console.log('built');
         }
 
         this.updateErrorMessage = () => {
             scene.errorMessages.setText(scene.fb.getLastErrorMessage());
-            console.log(scene.errorMessages.text);
         }
 
         this.loginAnimationClose = () => {

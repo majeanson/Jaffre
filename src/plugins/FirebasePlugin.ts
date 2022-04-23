@@ -18,6 +18,7 @@ import {
 import {
 	getAuth,
 	updateProfile,
+	updateCurrentUser,
 	createUserWithEmailAndPassword,
 	Auth,
 	signInWithEmailAndPassword,
@@ -110,6 +111,10 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 		return this.lastErrorMessage;
 	}
 
+	hasSameName(aName) {
+		return this.getUser().displayName == aName;
+    }
+
 	extractMessage(message) {
 		var errorMessage = message;
 		const onlyMsg = errorMessage.substr(errorMessage.indexOf(':') + 1, errorMessage.length + 1);
@@ -129,6 +134,23 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 			this.lastErrorMessage = this.extractMessage(error.message);
 		});
 		return credentials?.user;
+	}
+
+	addUserToLobby(user, lobbyName) {
+		updateProfile(user, {
+			...user,
+			photoURL: lobbyName
+		});
+		console.log('i addede', lobbyName);
+	}
+
+	removeUserFromLobby(user) {
+		updateProfile(user, {
+			...user,
+			photoURL: ''
+		});
+	
+		console.log('I REMOVED!', user);
 	}
 
 	async signInUserWithEmail(email: string, password: string) {

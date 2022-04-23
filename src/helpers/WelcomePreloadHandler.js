@@ -5,6 +5,5 @@ export default class WelcomePreloadHandler {
     constructor(scene) {
         scene.load.image('welcome', welcome);
         const a = scene.load.html('loginform', loginform);
-        console.log(loginform, a);
     }
 }

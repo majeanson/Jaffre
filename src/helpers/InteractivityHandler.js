@@ -28,15 +28,18 @@ export default class InteractivityHandler {
         });
 
         scene.input.on('drop', function (pointer, gameObject, dropZone) {
+            console.log(scene.GameHandler.isCurrentPlayerTurnDeck());
             if (scene.canDrop && dropZone === scene.dropZone) {
                 if (scene.GameHandler.isCurrentPlayerTurnDeck()
                     && (scene.GameHandler.gameState === 'gameStarted' || scene.GameHandler.gameState === 'gameReady')) {
-                    scene.socket.emit('cardPlayed', scene.socket.id, gameObject.data?.list.card);                   
+                    scene.socket.emit('cardPlayed', scene.lobby, scene.fb.getUser().displayName, gameObject.data?.list.card);                   
                     
                 }
             } else if (dropZone === scene.playerCardZone) {
-                const cardIndex = scene.DeckHandler.getCardRightBeforeIndex(pointer.upX, pointer.downX);
-                scene.socket.emit('cardMovedInHand', scene.socket.id, gameObject.data.list.card, cardIndex);              
+                console.log('cpo', scene.lobby);
+                const cardIndex = scene.DeckHandler.getCardRightBeforeIndex(pointer.upX, pointer.down, scene.lobby);
+                console.log('cpa', cardIndex);
+                scene.socket.emit('cardMovedInHand', scene.lobby, scene.fb.getUser().displayName, gameObject.data.list.card, cardIndex);              
             }
             scene.ZoneHandler.renderOutline(scene.dropZoneOutline, scene.dropZone, 0x526169);
             scene.canDrop = false;
@@ -57,7 +60,7 @@ export default class InteractivityHandler {
 
         scene.backCard?.on('pointerdown', () => {
             scene.backCard.setTint(0x808080, 0xC0C0C0, 0xC0C0C0, 0x808080);
-            scene.socket.emit("dealCards", scene.socket.id);
+            scene.socket.emit("dealCards", scene.fb.getUser(), scene.lobby);
         })
 
         scene.backCard?.on('pointerup', () => {
@@ -71,9 +74,11 @@ export default class InteractivityHandler {
         })
 
         scene.redButton?.on('pointerdown', () => {
-            console.log('i clicked the button');
-            scene.fb.addHighScore('ah', 12);
-            scene.socket.emit("finishRoundNow");
+            scene.socket.emit("finishRoundNow", scene.scene.scene.lobby);
+        })
+
+        scene.exitLobbyButton?.on('pointerdown', () => {
+            scene.socket.emit("exitLobby", scene.fb.getUser().displayName, scene.scene.scene.lobby);
         })
 
     }
