@@ -19,8 +19,8 @@ app.use(function (req, res, next) {
     res.header("access-control-allow-headers", 'origin,x-requested-with,content-type,accept,content-type,application/json');
     next();
 });
-
-const PORT = 51586;//process.env.PORT || 80;
+//const PORT = 51586;
+const PORT = process.env.PORT || 80;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
