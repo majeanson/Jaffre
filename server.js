@@ -32,7 +32,7 @@ const io = require('socket.io')(server, {
         methods: ["GET", "POST"],
     }
 });
-const socketIds = [];
+const socketIds = {};
 const fullDeadZone = [
     'al_0',
     'al_1',
@@ -387,6 +387,7 @@ const joinLobby = (user, lobbyName, asObservator) => {
             }
         }
     }
+    console.log('AAA***AAA', lobby, 'BBB***BBB');
     io.emit('refreshCards', lobby);
     io.emit('refreshBackCard', lobby);
     io.emit('changeGameState', lobby);
@@ -395,6 +396,17 @@ const joinLobby = (user, lobbyName, asObservator) => {
 
 io.on('connection', function (socket) {
     socket.on('disconnect', function () {
+        console.log('disconnected from socket id ', socket.id);
+        Object.values(socketIds).
+        socketIds.find(user => )
+        lobbys.find(lobby => lobby.players.find(player => player.displayName == user.))
+        if (players) {
+            const playerIdx = players?.findIndex(player => player.socketId === socket.id);
+            if (playerIdx > -1) {
+                console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
+                players[playerIdx].socketId = 'empty';
+            }
+        }
     });
 
     socket.on('dealCards', function (user, lobby) {
@@ -402,11 +414,6 @@ io.on('connection', function (socket) {
         io.emit('refreshCards', lobby);
         io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur 1 \u00E0 jouer", lobby);
         io.emit('refreshBackCard', lobby);
-    })
-
-    socket.on('userLoggedIn', function (socketId, user) {
-        socketIds[socketId] = user;
-        console.log('this user has logged in : ', user, socketId);
     })
 
     socket.on('joinLobby', function (user, lobbyName, asObservator) {

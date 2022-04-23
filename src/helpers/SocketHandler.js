@@ -62,7 +62,6 @@ export default class SocketHandler {
                 } else if (typeof scene.aNewPlayerHasEntered === 'function') {
                     scene.aNewPlayerHasEntered(user);
                 }
-                scene.socket.emit('userLoggedIn', scene.socket.id, user);
             }
         })
 
