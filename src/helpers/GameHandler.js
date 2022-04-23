@@ -96,20 +96,20 @@ export default class GameHandler {
             return currentTurnIdx;
         }
 
-        this.changeturn = () => {
-            let currentturnidx = this.getcurrentturnidx();
-            let nextturnidx = currentturnidx + 1;
-            if (nextturnidx === 4 /* last */) {
-                nextturnidx = 0;
+        this.changeTurn = (lobby) => {
+            let currentTurnIdx = this.getCurrentTurnIdx();
+            let nextTurnIdx = currentTurnIdx + 1;
+            if (nextTurnIdx === 4 /* last */) {
+                nextTurnIdx = 0;
             }
-            scene.lobby?.players.foreach((player, idx, arr) => {
-                if (idx === currentturnidx) {
-                    arr[idx].ismyturn = false;
-                } else if (idx === nextturnidx) {
-                    arr[idx].ismyturn = true;
+            lobby.players.forEach((player, idx, arr) => {
+                if (idx === currentTurnIdx) {
+                    arr[idx].isMyTurn = false;
+                } else if (idx === nextTurnIdx) {
+                    arr[idx].isMyTurn = true;
                 }
             });
-            this.internalChangeGameState(scene.lobby.gameState, "c'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
+            this.changeGameState(lobby.gameState, "C'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
         }
         
 
