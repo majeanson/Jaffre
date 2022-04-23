@@ -231,14 +231,14 @@ const isWinningOverAllAtouts = (lobby, atoutCard) => {
     return result;
 }
 
-const getPlayerIndexFromCardOrder = (cardOrder) => {
-    const firstPlayerIndex = players.findIndex(player => player.isMyTurn);
-    let res = firstPlayerIndex + cardOrder;
-    while (res > 3) {
-        res -= 4;
-    }
-    console.log('firstPlayerIndex', firstPlayerIndex, 'cardOrder', cardOrder, res);
-    return res;
+const getPlayerIndexFromCardOrder = (lobby, cardOrder) => {
+    const firstPlayerIndex = lobby.players.findIndex(player => player.isMyTurn);
+    //let res = firstPlayerIndex + cardOrder;
+    //while (res > 3) {
+    //    res -= 4;
+    //}
+    //console.log('firstPlayerIndex', firstPlayerIndex, 'cardOrder', cardOrder, res);
+    //return res;
     
     switch (firstPlayerIndex) {
         case 0:
@@ -278,7 +278,7 @@ const getPlayerIndexFromCardOrder = (cardOrder) => {
 }
 
 const findTheWinningCardAndAddPoints = (lobby) => {
-    let winningPlayerIndex = getPlayerIndexFromCardOrder(0);
+    let winningPlayerIndex = getPlayerIndexFromCardOrder(lobby, 0);
     const firstCardPlayed = lobby.currentDropZone[0];
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
@@ -289,7 +289,7 @@ const findTheWinningCardAndAddPoints = (lobby) => {
     lobby.currentDropZone?.forEach((card, idx) => {
        
         const cardValue = getCardValue(card);
-        const realPlayerIndex = getPlayerIndexFromCardOrder(idx);
+        const realPlayerIndex = getPlayerIndexFromCardOrder(lobby, idx);
         console.log('La carte idx# ', idx, ' a ete joue par le joueur ', realPlayerIndex + 1);
         if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
             highestAtoutValue = cardValue;
@@ -349,6 +349,10 @@ const exitLobby = (userName, lobbyName) => {
     return lobby;
 }
 
+const lobbyHasEmpties = (lobby) => {
+    return lobby.players.some(player => player.displayName == '');
+}
+
 const joinLobby = (user, lobbyName, asObservator) => {
     console.log('joinin lobby ', lobbyName);
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
@@ -369,7 +373,7 @@ const joinLobby = (user, lobbyName, asObservator) => {
     }
     const players = lobby.players;
        
-    if (players?.length < 4 && !getPlayerByDisplayName(lobby, user.displayName)) {
+    if ((players?.length < 4 || lobbyHasEmpties(lobby)) && !getPlayerByDisplayName(lobby, user.displayName)) {
         console.log('ADDING TO PLAYERS : ' + user.displayName);
         players?.push({
             inHand: [],
@@ -395,20 +399,6 @@ const joinLobby = (user, lobbyName, asObservator) => {
 }
 
 io.on('connection', function (socket) {
-    socket.on('disconnect', function () {
-        console.log('disconnected from socket id ', socket.id);
-        Object.values(socketIds).
-        socketIds.find(user => )
-        lobbys.find(lobby => lobby.players.find(player => player.displayName == user.))
-        if (players) {
-            const playerIdx = players?.findIndex(player => player.socketId === socket.id);
-            if (playerIdx > -1) {
-                console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
-                players[playerIdx].socketId = 'empty';
-            }
-        }
-    });
-
     socket.on('dealCards', function (user, lobby) {
         dealCards(user, lobby);
         io.emit('refreshCards', lobby);
@@ -416,10 +406,28 @@ io.on('connection', function (socket) {
         io.emit('refreshBackCard', lobby);
     })
 
-    socket.on('joinLobby', function (user, lobbyName, asObservator) {
-        const lobby = joinLobby(user, lobbyName, asObservator);
-        console.log('this user has joined lobby : ', user, lobbyName, asObservator);
-        io.emit('joinLobbySelection', user, lobby, asObservator);
+    socket.on('joinLobby', function (userName, lobbyName, asObservator) {
+        const lobby = joinLobby(userName, lobbyName, asObservator);
+        console.log('this user has joined lobby : ', userName, lobbyName, asObservator);
+        io.emit('joinLobbySelection', userName, lobby, asObservator);
+
+        socket.on('disconnect', function (userName, lobbyName) {
+            const lobby = lobbys.find(lobby => lobby.name == lobbyName);
+            if (lobby) {
+                const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+                if (playerIndex > -1) {
+                    lobby.players[playerIndex]
+                }
+            }
+           
+            if (player) {
+                const playerIdx = players?.findIndex(player => player.socketId === socket.id);
+                if (playerIdx > -1) {
+                    console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
+                    players[playerIdx].socketId = 'empty';
+                }
+            }
+        });
     })
 
     socket.on('exitLobby', function (userName, lobbyName) {

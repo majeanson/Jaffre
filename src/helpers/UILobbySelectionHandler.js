@@ -40,7 +40,7 @@ export default class UILobbySelectionHandler {
 
         this.joinLobby = (lobbyName) => {
             scene.canJoinLobby = true;
-            scene.socket.emit("joinLobby", scene.fb.getUser(), lobbyName, false);
+            scene.socket.emit("joinLobby", scene.fb.getUser().displayName, lobbyName, false);
         }
 
         const selfJoinLobby = (inputLobbyNameValue) => {

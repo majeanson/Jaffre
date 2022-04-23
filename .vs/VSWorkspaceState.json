@@ -7,8 +7,9 @@
     "\\src\\assets\\icons",
     "\\src\\helpers",
     "\\src\\plugins",
-    "\\src\\scenes"
+    "\\src\\scenes",
+    "\\utils"
   ],
-  "SelectedNode": "\\src\\scenes\\welcomeScreen.ts",
+  "SelectedNode": "\\utils\\align.js",
   "PreviewInSolutionExplorer": false
 }
