@@ -109,7 +109,7 @@ export default class GameHandler {
                     arr[idx].isMyTurn = true;
                 }
             });
-            this.changeGameState(lobby.gameState, "C'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
+            this.internalChangeGameState(lobby.gameState, "C'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
         }
         
 
