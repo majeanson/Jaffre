@@ -25,7 +25,7 @@ export default class UIGameHandler{
             Align.scaleToGameW(scene.game, scene.score, 0.15);
 
             scene.redButton = scene.add.image(0, 0, 'redbutton').setInteractive();;
-            scene.aGrid.placeAtIndex(7, scene.redButton);
+            scene.aGrid.placeAtIndex(-700, scene.redButton);
             Align.scaleToGameW(scene.game, scene.redButton, 0.3);
             //scene.aGrid.showNumbers();
             scene.exitLobbyButton = scene.add.image(0, 0, 'exit').setInteractive();;
