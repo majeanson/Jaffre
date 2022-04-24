@@ -7,7 +7,12 @@ export default class DeckHandler {
         this.getPlayerHand = (lobby) => {
             const currentUserName = scene.fb.getUser().displayName;
             const foundPlayerIndex = lobby.players.findIndex(player => player.displayName == currentUserName);
-            return lobby.players[foundPlayerIndex].inHand;
+            if (foundPlayerIndex > -1) {
+                return lobby.players[foundPlayerIndex].inHand;
+            } else {
+                return [];
+            }
+            
         }
 
         this.renderCards = (lobby, mode) => {
@@ -31,6 +36,7 @@ export default class DeckHandler {
                 } else {
                     scene.aGrid.placeAtIndex(index, foundCard);
                     scene.children.bringToTop(foundCard);
+                    console.log(card, index, mode)
                 }
                 
                 return foundCard;
@@ -40,8 +46,10 @@ export default class DeckHandler {
                 this.cardObjects.push(newRenderedCard);
                 scene.physics.world?.enable(newRenderedCard);
                 console.log('created new ', this.cardObjects);
+                console.log(card, index, mode)
                 return newRenderedCard;
             }
+           
         }
 
         this.renderPlayerZoneCards = (lobby, mode) => {
@@ -55,7 +63,7 @@ export default class DeckHandler {
 
         this.renderDropZoneCards = (lobby, mode) => {
             console.log('22', lobby);
-            lobby?.dropZoneCards?.forEach((card, index) => {
+            lobby?.currentDropZone?.forEach((card, index) => {
                 const newCard = this.createAndRenderCard(card, this.getGridIndex(index + 1), mode);
                 scene.input.setDraggable(newCard, false);
             });          
@@ -85,13 +93,12 @@ export default class DeckHandler {
             }
         }
 
-        this.cardPlayed = (cardName, index, userName, currentDropZone) => {
+        this.cardPlayed = (cardName, index) => {
             const foundCard = this.findCard(cardName);
             const gridIdx = this.getGridIndex(index);
             if (foundCard) {
                 scene.aGrid.placeAtIndex(gridIdx, foundCard);
                 scene.input.setDraggable(foundCard, false);
-                this.dropZoneCards = currentDropZone;
                 scene.children.bringToTop(foundCard);
             }      
         }
@@ -128,8 +135,9 @@ export default class DeckHandler {
         }
 
         this.endTurn = (lobby) => {
-            this.deadZoneCards?.push(... this.dropZoneCards);         
+            this.deadZoneCards?.push(...lobby.currentDropZone);
             this.dropZoneCards = [];
+           // need to deal;
             scene.GameHandler.refreshCards(lobby, 'endTurn');
         }
     }

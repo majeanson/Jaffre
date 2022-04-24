@@ -47,9 +47,10 @@ export default class Game extends BaseScreen {
         this.UIGameHandler = new UIGameHandler(this);
         this.UIGameHandler.buildUI();
         this.InteractivityHandler = new InteractivityHandler(this);
+        this.GameHandler.refreshCards(this.lobby);
     }
 
     update() {
-        //console.log(this.lobby);
+       // this.GameHandler.refreshCards(this.lobby);
     }
 }

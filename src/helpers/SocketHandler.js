@@ -2,11 +2,11 @@ import io from 'socket.io-client';
 
 export default class SocketHandler {
     constructor(scene) {
-        scene.socket = io("https://jaffre.herokuapp.com");
-        //scene.socket = io("http://localhost:51586");
+        //scene.socket = io("https://jaffre.herokuapp.com");
+        scene.socket = io("http://localhost:51586");
         
         scene.socket.on('refreshCards', (lobby) => {
-            if (lobby) {
+            if (lobby && lobby !== '') {
                 console.log('zazaza', lobby);
                 scene.GameHandler.refreshCards(lobby, 'normal');
             }
@@ -18,21 +18,17 @@ export default class SocketHandler {
             }
         })
 
-        scene.socket.on('changeTurn', (lobby) => {
-            scene.GameHandler.changeTurn(lobby);
-        })
-
-        scene.socket.on('changeGameState', (gameState, message, lobby) => {
+        scene.socket.on('changeGameState', (lobby) => {
             if (lobby) {
-                scene.GameHandler.internalChangeGameState(gameState, message);
                 scene.GameHandler.refreshCards(lobby, 'normal');
             }
         })        
 
         scene.socket.on('cardPlayed', (cardName, index, userName, lobby) => {
+            console.log('card !!! played')
+
             if (lobby) {
-                scene.DeckHandler.cardPlayed(cardName, index, userName, lobby.currentDropZone);
-                scene.GameHandler.changeTurn(lobby);
+                scene.DeckHandler.cardPlayed(cardName, index);
                 scene.GameHandler.refreshCards(lobby, 'normal');
             }
             return true;
@@ -55,12 +51,13 @@ export default class SocketHandler {
             }
         })
 
-        scene.socket.on('joinLobbySelection', (user, lobby, asObservator) => {
+        scene.socket.on('joinLobbySelection', (userName, lobby, asObservator) => {
+            console.log('joinLobbySelection', userName, lobby, asObservator);
             if (lobby) {
-                if (typeof scene.joinLobbyNow === 'function' && scene.fb.getUser().displayName == user.displayName) {
+                if (typeof scene.joinLobbyNow === 'function' && scene.fb.getUser().displayName == userName) {
                     scene.joinLobbyNow(true, lobby);
                 } else if (typeof scene.aNewPlayerHasEntered === 'function') {
-                    scene.aNewPlayerHasEntered(user);
+                    scene.aNewPlayerHasEntered(userName);
                 }
             }
         })

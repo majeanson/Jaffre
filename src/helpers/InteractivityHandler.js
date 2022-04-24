@@ -31,7 +31,8 @@ export default class InteractivityHandler {
             console.log(scene.GameHandler.isCurrentPlayerTurnDeck());
             if (scene.canDrop && dropZone === scene.dropZone) {
                 if (scene.GameHandler.isCurrentPlayerTurnDeck()
-                    && (scene.GameHandler.gameState === 'gameStarted' || scene.GameHandler.gameState === 'gameReady')) {
+                    && (scene.lobby.gameState === 'gameStarted' || scene.lobby.gameState === 'gameReady')) {
+                    console.log('deed is done');
                     scene.socket.emit('cardPlayed', scene.lobby, scene.fb.getUser().displayName, gameObject.data?.list.card);                   
                     
                 }
@@ -60,7 +61,7 @@ export default class InteractivityHandler {
 
         scene.backCard?.on('pointerdown', () => {
             scene.backCard.setTint(0x808080, 0xC0C0C0, 0xC0C0C0, 0x808080);
-            scene.socket.emit("dealCards", scene.fb.getUser(), scene.lobby);
+            scene.socket.emit("dealCards", scene.fb.getUser().displayName, scene.lobby);
         })
 
         scene.backCard?.on('pointerup', () => {
@@ -68,7 +69,7 @@ export default class InteractivityHandler {
         })
 
         scene.backCard?.on('pointerout', () => {
-            if (scene.GameHandler.gameState !== 'gameStarted') {
+            if (scene.lobby.gameState !== 'gameStarted') {
                 scene.backCard.setTint('0xffffff');
             }
         })

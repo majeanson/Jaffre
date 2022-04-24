@@ -141,7 +141,6 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 			...user,
 			photoURL: lobbyName
 		});
-		console.log('i addede', lobbyName);
 	}
 
 	removeUserFromLobby(user) {
@@ -149,8 +148,6 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 			...user,
 			photoURL: ''
 		});
-	
-		console.log('I REMOVED!', user);
 	}
 
 	async signInUserWithEmail(email: string, password: string) {

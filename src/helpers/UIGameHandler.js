@@ -20,7 +20,7 @@ export default class UIGameHandler{
             scene.aGrid.placeAtIndex(27, scene.scoreBoard);
             Align.scaleToGameW(scene.game, scene.scoreBoard, 0.3);
             scene.score = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS");
-            scene.score.setText(scene.GameHandler.getGameScoreText());
+            scene.score.setText('0 - 0');
             scene.aGrid.placeAtIndex(15.2, scene.score);
             Align.scaleToGameW(scene.game, scene.score, 0.15);
 
@@ -51,7 +51,8 @@ export default class UIGameHandler{
             scene.messageStatus = scene.add.text(0, 0, "Message status").setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x000000);
             scene.aGrid.placeAtIndex(0, scene.messageStatus);
             Align.scaleToGameW(scene.game, scene.messageStatus, 0.2);
-            scene.messageStatus.setText(scene.GameHandler.gameStateMessage);
+            Align.center4(scene.game, scene.messageStatus);
+            scene.messageStatus.setText(scene.lobby?.gameStateMessage);
             
         }
 

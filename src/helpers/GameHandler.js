@@ -8,14 +8,14 @@ export default class GameHandler {
 
         this.getPlayerName = () => {
             if (scene.lobby?.players) {
-                const foundIndex = scene.lobby?.players?.findIndex(player => player?.displayName == scene.fb.getUser().displayName);
-                const isMyTurn = scene.lobby?.players[foundIndex]?.isMyTurn;
-                const isDeckHolder = scene.lobby?.players[foundIndex]?.isDeckHolder;
+                const foundIndex = scene.lobby.players?.findIndex(player => player?.displayName == scene.fb.getUser().displayName);
+                const isMyTurn = scene.lobby.players[foundIndex]?.isMyTurn;
+                const isDeckHolder = scene.lobby.players[foundIndex]?.isDeckHolder;
                 if (scene.fb.getUser()) {
                     let text = scene.fb.getUser().displayName + ' Joueur ' + (foundIndex + 1);
                     isMyTurn ? text = text + ' -\u00C0 vous de jouer !' : '';
                     isDeckHolder ? text = text + ' [DEALER]' : '';
-                    text = text + '\u000A' + scene.lobby?.name;
+                    text = text + '\u000A' + scene.lobby.name;
                     return text;
                 }
             }
@@ -43,26 +43,26 @@ export default class GameHandler {
         }
 
         this.getPlayer1AndPlayer3Score = () => {
-            if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
+            if (scene.lobby?.players || scene.lobby?.players[0] || scene.lobby?.players[2]) {
                 return '0';
             }
             return parseInt(scene.lobby?.players[0]?.trickPoints) + parseInt(scene.lobby?.players[2]?.trickPoints);
         }
 
         this.getPlayer2AndPlayer4Score = () => {
-            if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
+            if (scene.lobby?.players || scene.lobby?.players[1] || scene.lobby?.players[3]) {
                 return '0';
             }
-            return parseInt(scene.lobby?.players[1].trickPoints) + parseInt(scene.lobby?.players[3].trickPoints);
+            return parseInt(scene.lobby.players[1].trickPoints) + parseInt(scene.lobby.players[3].trickPoints);
         }
         this.refreshTexts = () => {
             scene.playerName?.setText(this.getPlayerName());
             scene.score?.setText(this.getGameScoreText());
-            scene.messageStatus?.setText(this.gameStateMessage);
+            scene.messageStatus?.setText(scene.lobby.gameStateMessage);
         }
 
-        this.refreshBackCard = (lobby) => {
-            if (this.gameState === 'gameReady' && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
+        this.refreshBackCard = () => {
+            if (scene.lobby.gameState === 'gameReady' && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
                 scene.backCard?.setInteractive();
                 scene.backCard?.setTint('0xffffff');
             } else {
@@ -72,10 +72,10 @@ export default class GameHandler {
         }
 
         this.refreshCards = (lobby, mode) => {
+            scene.lobby = lobby;
             console.log('refreshing cards', lobby);
             scene.DeckHandler.renderCards(lobby, mode);
             this.refreshTexts();
-            scene.lobby = lobby;
         }
 
         this.getCurrentPlayer = () => {
@@ -94,24 +94,7 @@ export default class GameHandler {
                 }
             });
             return currentTurnIdx;
-        }
-
-        this.changeTurn = (lobby) => {
-            let currentTurnIdx = this.getCurrentTurnIdx();
-            let nextTurnIdx = currentTurnIdx + 1;
-            if (nextTurnIdx === 4 /* last */) {
-                nextTurnIdx = 0;
-            }
-            lobby.players.forEach((player, idx, arr) => {
-                if (idx === currentTurnIdx) {
-                    arr[idx].isMyTurn = false;
-                } else if (idx === nextTurnIdx) {
-                    arr[idx].isMyTurn = true;
-                }
-            });
-            this.internalChangeGameState(lobby.gameState, "C'est au joueur " + (nextTurnIdx + 1) + ' de jouer')
-        }
-        
+        }        
 
         this.endTurn = (lobby, winningPlayerIndex, isEndOfRound) => {
             scene.DeckHandler.endTurn(lobby);

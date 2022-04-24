@@ -19,20 +19,20 @@ app.use(function (req, res, next) {
     res.header("access-control-allow-headers", 'origin,x-requested-with,content-type,accept,content-type,application/json');
     next();
 });
-//const PORT = 51586;
-const PORT = process.env.PORT || 80;
+
+//const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 51586;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
-const devEnv = process.env.NODE_ENV !== "production";
+const devEnv = true;//process.env.NODE_ENV !== "production";
 const io = require('socket.io')(server, {
     cors: {
         origin: devEnv ? 'http://localhost:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
         methods: ["GET", "POST"],
     }
 });
-const socketIds = {};
 const fullDeadZone = [
     'al_0',
     'al_1',
@@ -77,7 +77,6 @@ const getShuffledCards = () => {
 }
 
 const getPlayerHand = (lobby, userName) => {
-    console.log('wrong??', lobby, userName);
     return getPlayerByDisplayName(lobby, userName)?.inHand;
 }
 
@@ -92,22 +91,24 @@ const isEndOfRound = (lobby) => {
 
 const cardPlayed = (lobby, userName, cardName) => {
     if (canPlayCard(lobby, userName, cardName)) {
+        console.log('CARD PLAYED!!!!!!!!!!!!!!!!!!!!')
         if (isFirstCardPlayedOfRound(lobby)) {
             atout = getCardColor(cardName);
         }
-        const player = getPlayerByDisplayName(lobby, userName);
-        player['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
-        player['isMyTurn'] = false;
         const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
-        console.log(playerIndex, lobby.players);
+        const player = getPlayerByDisplayName(lobby, userName);
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        lobbys[lobbyIdx].players[playerIndex]['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
+        lobbys[lobbyIdx].players[playerIndex]['isMyTurn'] = false;
         let nextPlayerIndex = playerIndex + 1;
         if (nextPlayerIndex === 4) {
             nextPlayerIndex = 0;
         }
-        if (player[nextPlayerIndex]) {
-            player[nextPlayerIndex]['isMyTurn'] = true;
+        if (lobbys[lobbyIdx].players[nextPlayerIndex]) {
+            lobbys[lobbyIdx].players[nextPlayerIndex]['isMyTurn'] = true;
         }
-        lobby.currentDropZone.push(cardName);
+        lobbys[lobbyIdx].currentDropZone.push(cardName);
+        lobbys[lobbyIdx].gameStateMessage = "C'est au joueur " + (nextPlayerIndex + 1) + ' de jouer';
         return true;
     }
 
@@ -191,22 +192,27 @@ const getPlayerIndexByDisplayName = (lobby, dispName) => {
     return lobby.players.findIndex(user => user.displayName == dispName);
 }
 
-const dealCards = (user, lobby) => {
+const getLobbyIndexByName = (lobbyName) => {
+    return lobbys.findIndex(lobby => lobby.name == lobbyName);
+}
+
+const dealCards = (user, lobbyIdx) => {
     const shuffledCards = getShuffledCards();
-    lobby.currentDropZone = [];
-    lobby.deadZone = [];
-    lobby.players.forEach((player, idx) => {
-        lobby.players[idx]['inHand'] = shuffledCards.splice(0, 8);
-        lobby.players[idx]['isDeckHolder'] = false;
-        lobby.players[idx]['isMyTurn'] = false;
+    lobbys[lobbyIdx].currentDropZone = [];
+
+    lobbys[lobbyIdx].players.forEach((player, idx, arr) => {
+        arr[idx]['inHand'] = shuffledCards.splice(0, 8);
+        arr[idx]['isDeckHolder'] = false;
+        arr[idx]['isMyTurn'] = false;
     });
-    const playerIdx = getPlayerIndexByDisplayName(lobby, user.displayName);
+    const playerIdx = getPlayerIndexByDisplayName(lobbys[lobbyIdx], user.displayName);
     if (playerIdx > -1) {
-        lobby.players[playerIdx]['isDeckHolder'] = true;
-        lobby.players[playerIdx]['isMyTurn'] = true;
-        arraymove(lobby.players, playerIdx, 0);
+        lobbys[lobbyIdx].players[playerIdx]['isDeckHolder'] = true;
+        lobbys[lobbyIdx].players[playerIdx]['isMyTurn'] = true;
+        arraymove(lobbys[lobbyIdx].players, playerIdx, 0);
     }
-    lobby.deadZone = [];
+    lobbys[lobbyIdx].deadZone = [];
+    console.log('CARDS ARE DEALT', lobbys[lobbyIdx]);
 }
 
 const endTheTrick = (lobby) => {
@@ -334,10 +340,10 @@ const hasBonhommeRouge = (lobby) => {
 }
 
 const changeGameState = (aGameState, message, lobby) => {
-    gameState = aGameState;
-    gameStateMessage = message;
-    console.log('game state changed to : ', gameState, gameStateMessage);
-    io.emit('changeGameState', gameState, gameStateMessage, lobby);
+    const lobbyIdx = getLobbyIndexByName(lobby.name);
+    lobbys[lobbyIdx].gameState = aGameState;
+    lobbys[lobbyIdx].gameStateMessage = message;
+    io.emit('changeGameState', lobby);
 }
 
 const exitLobby = (userName, lobbyName) => {
@@ -349,13 +355,14 @@ const exitLobby = (userName, lobbyName) => {
     return lobby;
 }
 
-const lobbyHasEmpties = (lobby) => {
-    return lobby.players.some(player => player.displayName == '');
+const lobbyHasEmptiesIdx = (players) => {
+    return players.findIndex(player => player.displayName == '');
 }
 
-const joinLobby = (user, lobbyName, asObservator) => {
-    console.log('joinin lobby ', lobbyName);
+const joinLobby = (userName, lobbyName, asObservator) => {
+    console.log('joinin lobby ', lobbyName, userName, lobbyName, asObservator);
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
+    console.log('booo', userName, lobbyName, asObservator, lobby);
     if (!lobby) {
         const newLobby = {
             name: lobbyName,
@@ -367,30 +374,35 @@ const joinLobby = (user, lobbyName, asObservator) => {
             deadZone: fullDeadZone.slice(),
             atout: ''
         };
-
+        for (let i = 0; i < 4; i++) {
+            newLobby.players.push({
+                inHand: [],
+                isDeckHolder: false,
+                isMyTurn: false,
+                trickPoints: 0,
+                displayName: ''
+            });
+        }
         lobbys.push(newLobby);
         lobby = newLobby;
     }
     const players = lobby.players;
-       
-    if ((players?.length < 4 || lobbyHasEmpties(lobby)) && !getPlayerByDisplayName(lobby, user.displayName)) {
-        console.log('ADDING TO PLAYERS : ' + user.displayName);
-        players?.push({
-            inHand: [],
-            isDeckHolder: false,
-            isMyTurn: false,
-            trickPoints: 0,
-            displayName: user.displayName
-        });
-        if (players?.length === 4) {
-            if (lobby.gameState === 'init' || lobby.gameState === 'lobby') {
-                changeGameState('gameReady', 'La partie peut d\u00E9buter', lobby);
-            }
-            else if (lobby.gameState === 'init') {
-                changeGameState('lobby', 'Le lobby doit se remplir', lobby);
-            }
+    const emptyIdx = lobbyHasEmptiesIdx(players);
+    const hasEmpties = emptyIdx > -1;
+    console.log(hasEmpties, emptyIdx, players);
+    if (hasEmpties && !getPlayerByDisplayName(lobby, userName)) {
+        console.log('ADDING TO PLAYERS : ' + userName);
+        if (emptyIdx > -1) {
+            players[emptyIdx].displayName = userName;
         }
     }
+
+    if (!hasEmpties && lobby.gameState === 'init' || lobby.gameState === 'lobby') {
+        changeGameState('gameReady', 'La partie peut d\u00E9buter', lobby);
+    } else if (lobby.gameState === 'init') {
+        changeGameState('lobby', 'Le lobby doit se remplir', lobby);
+    }
+
     console.log('AAA***AAA', lobby, 'BBB***BBB');
     io.emit('refreshCards', lobby);
     io.emit('refreshBackCard', lobby);
@@ -399,34 +411,29 @@ const joinLobby = (user, lobbyName, asObservator) => {
 }
 
 io.on('connection', function (socket) {
-    socket.on('dealCards', function (user, lobby) {
-        dealCards(user, lobby);
-        io.emit('refreshCards', lobby);
-        io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur 1 \u00E0 jouer", lobby);
-        io.emit('refreshBackCard', lobby);
+    //console.log(lobbys);
+    socket.on('dealCards', function (userName, lobby) {
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+        dealCards(userName, lobbyIdx);
+        io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur ', playerIndex, ' ', \u00E0 jouer", lobbys[lobbyIdx]);
+        io.emit('refreshCards', lobbys[lobbyIdx]);
+        io.emit('refreshBackCard', lobbys[lobbyIdx]);
+
     })
 
     socket.on('joinLobby', function (userName, lobbyName, asObservator) {
         const lobby = joinLobby(userName, lobbyName, asObservator);
         console.log('this user has joined lobby : ', userName, lobbyName, asObservator);
         io.emit('joinLobbySelection', userName, lobby, asObservator);
-
-        socket.on('disconnect', function (userName, lobbyName) {
-            const lobby = lobbys.find(lobby => lobby.name == lobbyName);
+        socket.on('disconnect', function (a) {
             if (lobby) {
                 const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
                 if (playerIndex > -1) {
-                    lobby.players[playerIndex]
+                    lobby.players[playerIndex].displayName = '';
                 }
             }
-           
-            if (player) {
-                const playerIdx = players?.findIndex(player => player.socketId === socket.id);
-                if (playerIdx > -1) {
-                    console.log(socket.id, ' (Player ', playerIdx, ') has been replaced to "empty"');
-                    players[playerIdx].socketId = 'empty';
-                }
-            }
+            console.log('disconnect done. here is the lobby : ', lobby); 
         });
     })
 
@@ -445,14 +452,15 @@ io.on('connection', function (socket) {
 
     socket.on('cardPlayed', function (lobby, userName, cardName) {
         console.log('card played YO~~~~~~~~~~~~~~~~~~~~~~~');
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
         let result = cardPlayed(lobby, userName, cardName);
         if (result) {
-            let index = lobby.currentDropZone.length;
-
-            io.emit('cardPlayed', cardName, index, userName, lobby);
-            const dropZoneIsFull = lobby.currentDropZone.length === 4;
+            let index = lobbys[lobbyIdx].currentDropZone.length;
+            console.log(JSON.stringify(lobbys[lobbyIdx]));
+            io.emit('cardPlayed', cardName, index, userName, lobbys[lobbyIdx]);
+            const dropZoneIsFull = lobbys[lobbyIdx].currentDropZone.length === 4;
             if (dropZoneIsFull) {
-                endTheTrick(lobby);
+                endTheTrick(lobbys[lobbyIdx]);
             }
         }
     })
@@ -468,9 +476,9 @@ io.on('connection', function (socket) {
 
     socket.on('finishRoundNow', function (lobby) {
         lobby.players[0]['inHand'] = [];
-        //lobby.players[1]['inHand'] = [];
-        //lobby.players[2]['inHand'] = [];
-        //lobby.players[3]['inHand'] = [];
+        lobby.players[1]['inHand'] = [];
+        lobby.players[2]['inHand'] = [];
+        lobby.players[3]['inHand'] = [];
         lobby.currentDropZone = ['al_1', 'al_2', 'al_3', 'al_4'];
         lobby.deadZone = [
             'al_0',
