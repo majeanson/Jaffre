@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 export default class SocketHandler {
     constructor(scene) {
         //scene.socket = io("https://jaffre.herokuapp.com");
-        scene.socket = io("http://localhost:51586");
+        scene.socket = io("http://192.168.2.47:51586");
         
         scene.socket.on('refreshCards', (lobby) => {
             if (lobby && lobby !== '') {
@@ -20,6 +20,8 @@ export default class SocketHandler {
 
         scene.socket.on('changeGameState', (lobby) => {
             if (lobby) {
+                scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
+                scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
                 scene.GameHandler.refreshCards(lobby, 'normal');
             }
         })        
@@ -30,6 +32,15 @@ export default class SocketHandler {
             if (lobby) {
                 scene.DeckHandler.cardPlayed(cardName, index);
                 scene.GameHandler.refreshCards(lobby, 'normal');
+            }
+            return true;
+        })
+
+        scene.socket.on('teamSelected', (lobby) => {
+            console.log('teamselected!!!!!!!', lobby.teamChoice);
+            if (lobby) {
+                console.log(scene);
+                scene.GameHandler?.toggleShowChooseTeamsForm(lobby);
             }
             return true;
         })

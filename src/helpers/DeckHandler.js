@@ -6,7 +6,7 @@ export default class DeckHandler {
 
         this.getPlayerHand = (lobby) => {
             const currentUserName = scene.fb.getUser().displayName;
-            const foundPlayerIndex = lobby.players.findIndex(player => player.displayName == currentUserName);
+            const foundPlayerIndex = lobby.players?.findIndex(player => player.displayName == currentUserName);
             if (foundPlayerIndex > -1) {
                 return lobby.players[foundPlayerIndex].inHand;
             } else {
@@ -16,7 +16,6 @@ export default class DeckHandler {
         }
 
         this.renderCards = (lobby, mode) => {
-            console.log('rendering cards', lobby);
             if (lobby) {
                 this.renderPlayerZoneCards(lobby, mode);
                 this.renderDropZoneCards(lobby, mode);
@@ -27,7 +26,6 @@ export default class DeckHandler {
         this.createAndRenderCard = (card, index, mode) => {
             const foundCard = this.findCard(card);
             if (foundCard) {
-                console.log('found card ', card);
                 if (index === 500 && mode === 'endTurn') {
                     let target = {};
                     target.x = 2000;
@@ -36,7 +34,6 @@ export default class DeckHandler {
                 } else {
                     scene.aGrid.placeAtIndex(index, foundCard);
                     scene.children.bringToTop(foundCard);
-                    console.log(card, index, mode)
                 }
                 
                 return foundCard;
@@ -45,8 +42,6 @@ export default class DeckHandler {
                 const newRenderedCard = newCard.addCardToScene(card, index);
                 this.cardObjects.push(newRenderedCard);
                 scene.physics.world?.enable(newRenderedCard);
-                console.log('created new ', this.cardObjects);
-                console.log(card, index, mode)
                 return newRenderedCard;
             }
            
@@ -62,7 +57,6 @@ export default class DeckHandler {
         }
 
         this.renderDropZoneCards = (lobby, mode) => {
-            console.log('22', lobby);
             lobby?.currentDropZone?.forEach((card, index) => {
                 const newCard = this.createAndRenderCard(card, this.getGridIndex(index + 1), mode);
                 scene.input.setDraggable(newCard, false);
@@ -70,12 +64,9 @@ export default class DeckHandler {
         }
 
         this.renderDeadZoneCards = (lobby, mode) => {
-            console.log('33', lobby);
             let initialIndex = 500; // out of bounds
-            console.log('hihi', mode, lobby);
             lobby?.deadZoneCards?.forEach(card => {
                 const newCard = this.createAndRenderCard(card, initialIndex, mode);
-                console.log('yes');
                 scene.input.setDraggable(newCard, true);
             });
         }      
@@ -108,7 +99,7 @@ export default class DeckHandler {
             let shouldSkip = false;
             let condition = 'original';
             let arrayToUse = this.getPlayerHand(lobby).slice();
-            console.log(arrayToUse, lobby);
+            console.log('upX', upX, 'downX', downX, condition, arrayToUse, lobby);
             if (downX < upX) {
                 const reverseClone = arrayToUse.reverse();
                 arrayToUse = reverseClone;
@@ -124,6 +115,7 @@ export default class DeckHandler {
                     }
                 }
             });
+            console.log('zzzzzzz!', foundCardIdx);
             return foundCardIdx;
         }
         
@@ -135,9 +127,6 @@ export default class DeckHandler {
         }
 
         this.endTurn = (lobby) => {
-            this.deadZoneCards?.push(...lobby.currentDropZone);
-            this.dropZoneCards = [];
-           // need to deal;
             scene.GameHandler.refreshCards(lobby, 'endTurn');
         }
     }

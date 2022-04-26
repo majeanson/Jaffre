@@ -48,13 +48,13 @@ export default class UILobbySelectionHandler {
         }
 
         this.buildLobbySelectionForm = () => {
-            scene.lobbySelectionForm = scene.add.dom(scene.sys.game.canvas.width / 2, 500).createFromHTML(lobbyselectionform);
+            scene.lobbySelectionForm = scene.add.dom(scene.sys.game.canvas.width / 2, -500).createFromHTML(lobbyselectionform);
             scene.lobbySelectionForm.setPerspective(800);
             scene.lobbySelectionForm.addListener('click');
             scene.tweens.add({
                 targets: scene.lobbySelectionForm,
-                y: 350,
-                duration: 4000,
+                y: 400,
+                duration: 3000,
                 ease: 'Power3'
             });
             scene.lobbySelectionForm.getChildByName('lobbyNameField').value = this.getRandomName();

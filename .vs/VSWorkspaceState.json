@@ -10,6 +10,6 @@
     "\\src\\scenes",
     "\\utils"
   ],
-  "SelectedNode": "\\utils\\align.js",
+  "SelectedNode": "\\src\\scenes\\game.ts",
   "PreviewInSolutionExplorer": false
 }

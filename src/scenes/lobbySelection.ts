@@ -19,6 +19,8 @@ export default class LobbySelection extends BaseScreen {
         if (canJoinLobby && lobby) {
             
             this.fb.addUserToLobby(this.fb.getUser(), lobby.name);
+            this.scene.stop('lobbySelection');
+            this.scene.stop('welcome');
             this.scene.start('Game', { lobby: lobby });
         }
     }

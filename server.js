@@ -29,7 +29,7 @@ const server = app.listen(PORT, () => {
 const devEnv = true;//process.env.NODE_ENV !== "production";
 const io = require('socket.io')(server, {
     cors: {
-        origin: devEnv ? 'http://localhost:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
+        origin: devEnv ? 'http://192.168.2.47:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
         methods: ["GET", "POST"],
     }
 });
@@ -91,7 +91,6 @@ const isEndOfRound = (lobby) => {
 
 const cardPlayed = (lobby, userName, cardName) => {
     if (canPlayCard(lobby, userName, cardName)) {
-        console.log('CARD PLAYED!!!!!!!!!!!!!!!!!!!!')
         if (isFirstCardPlayedOfRound(lobby)) {
             atout = getCardColor(cardName);
         }
@@ -108,7 +107,9 @@ const cardPlayed = (lobby, userName, cardName) => {
             lobbys[lobbyIdx].players[nextPlayerIndex]['isMyTurn'] = true;
         }
         lobbys[lobbyIdx].currentDropZone.push(cardName);
-        lobbys[lobbyIdx].gameStateMessage = "C'est au joueur " + (nextPlayerIndex + 1) + ' de jouer';
+        let message = lobbys[lobbyIdx].gameStateMessage = userName + ' a jou\u00E9 la derni\u00E8re carte' + '\u000A';
+        message = message + "C'est au joueur " + (nextPlayerIndex + 1) + ' (' + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ')' + ' de jouer';
+        lobbys[lobbyIdx].gameStateMessage = message;
         return true;
     }
 
@@ -133,12 +134,7 @@ const cardMovedInHand = (lobby, userName, card, index) => {
 }
 
 const getPlayerCardIdx = (lobby, userName, card) => {
-   
-    return getPlayerHand(lobby, userName).findIndex(aCard => { console.log(aCard, card); return aCard === card });
-}
-
-const findPlayerInLobbys = (user) => {
-    return lobbys.find(lobby => lobby.players.find(player => player.displayName == user.displayName));
+    return getPlayerHand(lobby, userName).findIndex(aCard =>  aCard === card );
 }
 
 const canPlayCard = (lobby, userName, cardName) => {
@@ -196,7 +192,7 @@ const getLobbyIndexByName = (lobbyName) => {
     return lobbys.findIndex(lobby => lobby.name == lobbyName);
 }
 
-const dealCards = (user, lobbyIdx) => {
+const dealCards = (userName, lobbyIdx) => {
     const shuffledCards = getShuffledCards();
     lobbys[lobbyIdx].currentDropZone = [];
 
@@ -205,14 +201,14 @@ const dealCards = (user, lobbyIdx) => {
         arr[idx]['isDeckHolder'] = false;
         arr[idx]['isMyTurn'] = false;
     });
-    const playerIdx = getPlayerIndexByDisplayName(lobbys[lobbyIdx], user.displayName);
+    
+    const playerIdx = getPlayerIndexByDisplayName(lobbys[lobbyIdx], userName);
     if (playerIdx > -1) {
         lobbys[lobbyIdx].players[playerIdx]['isDeckHolder'] = true;
         lobbys[lobbyIdx].players[playerIdx]['isMyTurn'] = true;
         arraymove(lobbys[lobbyIdx].players, playerIdx, 0);
     }
     lobbys[lobbyIdx].deadZone = [];
-    console.log('CARDS ARE DEALT', lobbys[lobbyIdx]);
 }
 
 const endTheTrick = (lobby) => {
@@ -239,13 +235,6 @@ const isWinningOverAllAtouts = (lobby, atoutCard) => {
 
 const getPlayerIndexFromCardOrder = (lobby, cardOrder) => {
     const firstPlayerIndex = lobby.players.findIndex(player => player.isMyTurn);
-    //let res = firstPlayerIndex + cardOrder;
-    //while (res > 3) {
-    //    res -= 4;
-    //}
-    //console.log('firstPlayerIndex', firstPlayerIndex, 'cardOrder', cardOrder, res);
-    //return res;
-    
     switch (firstPlayerIndex) {
         case 0:
             switch (cardOrder) {
@@ -284,6 +273,7 @@ const getPlayerIndexFromCardOrder = (lobby, cardOrder) => {
 }
 
 const findTheWinningCardAndAddPoints = (lobby) => {
+    const lobbyIdx = getLobbyIndexByName(lobby.name);
     let winningPlayerIndex = getPlayerIndexFromCardOrder(lobby, 0);
     const firstCardPlayed = lobby.currentDropZone[0];
     const requestedTrickColor = getCardColor(firstCardPlayed);
@@ -317,8 +307,7 @@ const findTheWinningCardAndAddPoints = (lobby) => {
     if (hasBonhommeRouge()) {
         pointsToAdd = pointsToAdd + 5;
     }
-    players[winningPlayerIndex].trickPoints += pointsToAdd;
-    
+    lobbys[lobbyIdx][winningPlayerIndex].trickPoints += pointsToAdd;
     return winningPlayerIndex;
 }
 
@@ -343,11 +332,10 @@ const changeGameState = (aGameState, message, lobby) => {
     const lobbyIdx = getLobbyIndexByName(lobby.name);
     lobbys[lobbyIdx].gameState = aGameState;
     lobbys[lobbyIdx].gameStateMessage = message;
-    io.emit('changeGameState', lobby);
+    io.emit('changeGameState', lobbys[lobbyIdx]);
 }
 
 const exitLobby = (userName, lobbyName) => {
-    console.log('exitin lobby');
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
     if (lobby) {
         lobby.players = lobby.players.filter(player => player.displayName == userName);
@@ -359,10 +347,16 @@ const lobbyHasEmptiesIdx = (players) => {
     return players.findIndex(player => player.displayName == '');
 }
 
+const lobbyEmptiesCount = (players) => {
+    return players.filter(player => player.displayName == '').length;
+}
+
+const readyCount = (players) => {
+    return players.filter(player => player.isReady).length;
+}
+
 const joinLobby = (userName, lobbyName, asObservator) => {
-    console.log('joinin lobby ', lobbyName, userName, lobbyName, asObservator);
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
-    console.log('booo', userName, lobbyName, asObservator, lobby);
     if (!lobby) {
         const newLobby = {
             name: lobbyName,
@@ -372,7 +366,7 @@ const joinLobby = (userName, lobbyName, asObservator) => {
             gameStateMessage: 'Bienvenue',
             currentDropZone: [],
             deadZone: fullDeadZone.slice(),
-            atout: ''
+            atout: '',
         };
         for (let i = 0; i < 4; i++) {
             newLobby.players.push({
@@ -387,23 +381,22 @@ const joinLobby = (userName, lobbyName, asObservator) => {
         lobby = newLobby;
     }
     const players = lobby.players;
-    const emptyIdx = lobbyHasEmptiesIdx(players);
-    const hasEmpties = emptyIdx > -1;
-    console.log(hasEmpties, emptyIdx, players);
+    let emptyIdx = lobbyHasEmptiesIdx(players);
+    let hasEmpties = emptyIdx > -1;
     if (hasEmpties && !getPlayerByDisplayName(lobby, userName)) {
-        console.log('ADDING TO PLAYERS : ' + userName);
         if (emptyIdx > -1) {
             players[emptyIdx].displayName = userName;
         }
     }
-
-    if (!hasEmpties && lobby.gameState === 'init' || lobby.gameState === 'lobby') {
+    emptyIdx = lobbyHasEmptiesIdx(players);
+    const remainingToJoin = 4 - lobbyEmptiesCount(players);
+    hasEmpties = emptyIdx > -1;
+    if (!hasEmpties && (lobby.gameState === 'init' || lobby.gameState === 'lobby')) {
         changeGameState('gameReady', 'La partie peut d\u00E9buter', lobby);
-    } else if (lobby.gameState === 'init') {
-        changeGameState('lobby', 'Le lobby doit se remplir', lobby);
+    } else if (lobby.gameState === 'init' || lobby.gameState === 'lobby') {
+        changeGameState('lobby', 'Le lobby doit se remplir (' + remainingToJoin + ' / 4)', lobby);
     }
 
-    console.log('AAA***AAA', lobby, 'BBB***BBB');
     io.emit('refreshCards', lobby);
     io.emit('refreshBackCard', lobby);
     io.emit('changeGameState', lobby);
@@ -411,20 +404,30 @@ const joinLobby = (userName, lobbyName, asObservator) => {
 }
 
 io.on('connection', function (socket) {
-    //console.log(lobbys);
     socket.on('dealCards', function (userName, lobby) {
         const lobbyIdx = getLobbyIndexByName(lobby.name);
         const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
         dealCards(userName, lobbyIdx);
-        io.emit('changeGameState', 'gameStarted', 'La partie a d\u00E9buter. \u000A' + "C'est au joueur ', playerIndex, ' ', \u00E0 jouer", lobbys[lobbyIdx]);
+        lobbys[lobbyIdx].gameState = 'gameStarted';
+        let nextPlayerIndex = playerIndex + 1;
+        if (nextPlayerIndex === 4) {
+            nextPlayerIndex = 0;
+        }
+
+        lobbys[lobbyIdx].gameStateMessage = 'La partie a d\u00E9buter. \u000A' + "C'est au joueur " + (nextPlayerIndex + 1) + ' (' + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ')' + ' de miser';
         io.emit('refreshCards', lobbys[lobbyIdx]);
         io.emit('refreshBackCard', lobbys[lobbyIdx]);
 
     })
 
+    socket.on('chooseTeams', function (lobby) {
+        const cnt = readyCount(lobby.players);
+        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + cnt + ' / 4 pru00EAts', lobby)
+    })
+
     socket.on('joinLobby', function (userName, lobbyName, asObservator) {
         const lobby = joinLobby(userName, lobbyName, asObservator);
-        console.log('this user has joined lobby : ', userName, lobbyName, asObservator);
+        console.log('this user has joined lobby : ', userName, lobbyName, lobby.teamChoice, asObservator);
         io.emit('joinLobbySelection', userName, lobby, asObservator);
         socket.on('disconnect', function (a) {
             if (lobby) {
@@ -457,12 +460,46 @@ io.on('connection', function (socket) {
         if (result) {
             let index = lobbys[lobbyIdx].currentDropZone.length;
             console.log(JSON.stringify(lobbys[lobbyIdx]));
+            
             io.emit('cardPlayed', cardName, index, userName, lobbys[lobbyIdx]);
             const dropZoneIsFull = lobbys[lobbyIdx].currentDropZone.length === 4;
             if (dropZoneIsFull) {
                 endTheTrick(lobbys[lobbyIdx]);
             }
         }
+    })
+    socket.on('playerIsReadyServer', function (lobby, userName) {
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+        const playerIsReady = lobbys[lobbyIdx].players[playerIndex]['isReady'];
+        console.log('playerIsReady ?? ', playerIsReady);
+        lobbys[lobbyIdx].players[playerIndex]['isReady'] = !playerIsReady;
+        const readyCnt = readyCount(lobbys[lobbyIdx].players);
+        console.log(lobbys[lobbyIdx].players);
+        const allPlayersCnt = 4;
+        if (readyCnt < allPlayersCnt) {
+            changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
+        } else if (readyCnt == allPlayersCnt) {
+            changeGameState('placeBets', 'La partie d\u00E9bute. Placez vos mises', lobbys[lobbyIdx]);
+        }
+        
+    })
+
+    socket.on('teamSelectedServer', function (lobby, choice, userName) {
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        lobbys[lobbyIdx].teamChoice = choice;
+
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+
+        lobbys[lobbyIdx].players.forEach((player, idx, arr) => {
+            arr[idx]['isReady'] = false;
+        });
+
+        const player = getPlayerByDisplayName(lobby, userName);
+        console.log(playerIndex, userName, lobbys[lobbyIdx].players);
+        lobbys[lobbyIdx].players[playerIndex]['isReady'] = true;
+        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCount(lobbys[lobbyIdx].players) + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
+        io.emit('teamSelected', lobbys[lobbyIdx]);
     })
 
     socket.on('cardMovedInHand', function (lobby, userName, card, index) {
@@ -475,12 +512,13 @@ io.on('connection', function (socket) {
     })
 
     socket.on('finishRoundNow', function (lobby) {
-        lobby.players[0]['inHand'] = [];
-        lobby.players[1]['inHand'] = [];
-        lobby.players[2]['inHand'] = [];
-        lobby.players[3]['inHand'] = [];
-        lobby.currentDropZone = ['al_1', 'al_2', 'al_3', 'al_4'];
-        lobby.deadZone = [
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        lobbys[lobbyIdx].players[0]['inHand'] = [];
+        lobbys[lobbyIdx].players[1]['inHand'] = [];
+        lobbys[lobbyIdx].players[2]['inHand'] = [];
+        lobbys[lobbyIdx].players[3]['inHand'] = [];
+        lobbys[lobbyIdx].currentDropZone = ['al_1', 'al_2', 'al_3', 'al_4'];
+        lobbys[lobbyIdx].deadZone = [
             'al_0',
             'al_1',
             'al_2',
@@ -515,7 +553,7 @@ io.on('connection', function (socket) {
             'ru_7'
         ];
 
-        io.emit('endTheTrick', lobby, 3, true);
+        io.emit('endTheTrick', lobbys[lobbyIdx], 3, true);
     })
 
     

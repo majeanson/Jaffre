@@ -1,5 +1,6 @@
 export default class GameHandler {
     constructor(scene) {
+
         this.isCurrentPlayerTurnDeck = () => {
             const currentPlayer = this.getCurrentPlayer();
             console.log('isCurrentPlayerTurnDeck', currentPlayer);
@@ -43,26 +44,27 @@ export default class GameHandler {
         }
 
         this.getPlayer1AndPlayer3Score = () => {
-            if (scene.lobby?.players || scene.lobby?.players[0] || scene.lobby?.players[2]) {
+            if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
                 return '0';
             }
             return parseInt(scene.lobby?.players[0]?.trickPoints) + parseInt(scene.lobby?.players[2]?.trickPoints);
         }
 
         this.getPlayer2AndPlayer4Score = () => {
-            if (scene.lobby?.players || scene.lobby?.players[1] || scene.lobby?.players[3]) {
+            if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
                 return '0';
             }
-            return parseInt(scene.lobby.players[1].trickPoints) + parseInt(scene.lobby.players[3].trickPoints);
-        }
-        this.refreshTexts = () => {
-            scene.playerName?.setText(this.getPlayerName());
-            scene.score?.setText(this.getGameScoreText());
-            scene.messageStatus?.setText(scene.lobby.gameStateMessage);
+            return parseInt(scene.lobby?.players[1].trickPoints) + parseInt(scene.lobby?.players[3].trickPoints);
         }
 
-        this.refreshBackCard = () => {
-            if (scene.lobby.gameState === 'gameReady' && (!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder))) {
+        this.refreshTexts = (lobby) => {
+            scene.playerName?.setText(this.getPlayerName());
+            scene.score?.setText(this.getGameScoreText());
+            scene.messageStatus?.setText(lobby.gameStateMessage);
+        }
+
+        this.refreshBackCard = (lobby) => {
+            if (lobby.gameState === 'gameReady' && ((!this.thereIsADeckHolder() || (this.thereIsADeckHolder() && this.getCurrentPlayer()?.isDeckHolder)))) {
                 scene.backCard?.setInteractive();
                 scene.backCard?.setTint('0xffffff');
             } else {
@@ -71,11 +73,16 @@ export default class GameHandler {
             }
         }
 
+        this.toggleShowChooseTeamsForm = (lobby) => {
+            scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
+        }
+
         this.refreshCards = (lobby, mode) => {
             scene.lobby = lobby;
             console.log('refreshing cards', lobby);
             scene.DeckHandler.renderCards(lobby, mode);
-            this.refreshTexts();
+            this.refreshTexts(lobby);
+            this.refreshBackCard(lobby);
         }
 
         this.getCurrentPlayer = () => {
@@ -102,8 +109,7 @@ export default class GameHandler {
             if (isEndOfRound) {
                 this.emitChangeState('roundEnded', message, lobby);
             } else {
-                this.internalChangeGameState(this.gameState, message);
-                
+                this.emitChangeState(lobby.gameState, message, lobby);
             }
             
         }

@@ -1,4 +1,3 @@
-import welcome from '../assets/icons/welcome.png';
 import lobbyselectionform from '../assets/forms/lobbyselectionform.html';
 
 export default class LobbyPreloadHandler {

@@ -30,14 +30,22 @@ import ru_4 from '../assets/cards/ru_4.png';
 import ru_5 from '../assets/cards/ru_5.png';
 import ru_6 from '../assets/cards/ru_6.png';
 import ru_7 from '../assets/cards/ru_7.png';
-import back from '../assets/cards/back.png';
+import hugeback from '../assets/cards/hugeback.png';
 import background from '../assets/icons/background.png';
 import score from '../assets/icons/score.png';
 import redbutton from '../assets/icons/redbutton.png';
 import exit from '../assets/icons/exit.png';
+import chooseteamsform from '../assets/forms/chooseteamsform.html';
+import placebetsform from '../assets/forms/placebetsform.html';
 
 export default class GamePreloadHandler {
     constructor(scene) {
+
+        this.preloadForms = () => {
+            scene.load.html('chooseteamsform', chooseteamsform);
+            scene.load.html('placebetsform', placebetsform);
+            
+        }
 
         this.preloadCards = () => {
             scene.load.image('al_0', al_0);
@@ -72,7 +80,7 @@ export default class GamePreloadHandler {
             scene.load.image('ru_5', ru_5);
             scene.load.image('ru_6', ru_6);
             scene.load.image('ru_7', ru_7);
-            scene.load.image('back', back);
+            scene.load.image('hugeback', hugeback);
         }
 
         this.preloadIcons = () => {

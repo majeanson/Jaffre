@@ -1,0 +1,510 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Roboto:400,300,500,700);
+
+        ::selection {
+            background: none;
+        }
+
+        body {
+            background: #BADA55;
+            font-family: 'Roboto';
+            font-weight: 500;
+            text-transform: uppercase;
+            color: #2E8612;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        h1 {
+            font-weight: 100;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            font-size: 50px;
+        }
+
+        h4 {
+            font-weight: 400;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 50px;
+        }
+
+        .continput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            width: 100px;
+            height: 270px;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        ul {
+            list-style-type: none;
+            width: 250px;
+            margin: auto;
+            position: absolute;
+            left: -10px;
+        }
+
+        li {
+            position: relative;
+            padding: 10px;
+            padding-left: 40px;
+            height: 100px;
+            text-align:center;
+        }
+
+        label:before {
+            content: "";
+            width: 15px;
+            height: 15px;
+            background: #8F4848;
+            position: absolute;
+            left: 7px;
+            top: calc(50% - 13px);
+            box-sizing: border-box;
+            border-radius: 50%;
+        }
+
+        input[type="radio"] {
+            opacity: 0;
+            -webkit-appearance: none;
+            display: inline-block;
+            vertical-align: middle;
+            z-index: 100;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 30px;
+            position: absolute;
+            left: 0;
+            top: calc(50% - 15px);
+            cursor: pointer;
+        }
+
+        .bullet {
+            position: relative;
+            width: 25px;
+            height: 25px;
+            left: -3px;
+            top: 38px;
+            border: 5px solid #8F4848;
+            opacity: 0;
+            border-radius: 50%;
+        }
+
+        input[type="radio"]:checked ~ .bullet {
+            position: absolute;
+            opacity: 1;
+            animation-name: explode;
+            animation-duration: 0.350s;
+        }
+
+        .line {
+            position: absolute;
+            width: 10px;
+            height: 2px;
+            background-color: #ff0000;
+            opacity: 0;
+        }
+
+            .line.zero {
+                left: 11px;
+                top: -21px;
+                transform: translateY(20px);
+                width: 2px;
+                height: 10px;
+            }
+
+            .line.one {
+                right: -7px;
+                top: -11px;
+                transform: rotate(-55deg) translate(-9px);
+            }
+
+            .line.two {
+                right: -20px;
+                top: 11px;
+                transform: translate(-9px);
+            }
+
+            .line.three {
+                right: -8px;
+                top: 35px;
+                transform: rotate(55deg) translate(-9px);
+            }
+
+            .line.four {
+                left: -8px;
+                top: -11px;
+                transform: rotate(55deg) translate(9px);
+            }
+
+            .line.five {
+                left: -20px;
+                top: 11px;
+                transform: translate(9px);
+            }
+
+            .line.six {
+                left: -8px;
+                top: 35px;
+                transform: rotate(-55deg) translate(9px);
+            }
+
+            .line.seven {
+                left: 11px;
+                bottom: -21px;
+                transform: translateY(-20px);
+                width: 2px;
+                height: 10px;
+            }
+
+        input[type="radio"]:checked ~ .bullet .line.zero {
+            animation-name: drop-zero;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.one {
+            animation-name: drop-one;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.two {
+            animation-name: drop-two;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.three {
+            animation-name: drop-three;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.four {
+            animation-name: drop-four;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.five {
+            animation-name: drop-five;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.six {
+            animation-name: drop-six;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        input[type="radio"]:checked ~ .bullet .line.seven {
+            animation-name: drop-seven;
+            animation-delay: 0.100s;
+            animation-duration: 0.9s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                opacity: 0;
+                transform: scale(10);
+            }
+
+            60% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes drop-zero {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+                height: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-2px);
+                height: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-one {
+            0% {
+                opacity: 0;
+                transform: rotate(-55deg) translate(-20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(-55deg) translate(9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-two {
+            0% {
+                opacity: 0;
+                transform: translate(-20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-three {
+            0% {
+                opacity: 0;
+                transform: rotate(55deg) translate(-20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(55deg) translate(9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-four {
+            0% {
+                opacity: 0;
+                transform: rotate(55deg) translate(20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(55deg) translate(-9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-five {
+            0% {
+                opacity: 0;
+                transform: translate(20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-six {
+            0% {
+                opacity: 0;
+                transform: rotate(-55deg) translate(20px);
+                width: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(-55deg) translate(-9px);
+                width: 0px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes drop-seven {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+                height: 10px;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(2px);
+                height: 0px;
+                opacity: 0;
+            }
+        }
+
+        .toggle {
+            --width: 130px;
+            --height: calc(var(--width) / 4);
+            position: relative;
+            display: inline-block;
+            width: var(--width);
+            height: var(--height);
+            box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+            border-radius: var(--height);
+            cursor: pointer;
+        }
+
+            .toggle input {
+                display: none;
+            }
+
+            .toggle .slider {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: var(--height);
+                background-color: #4F0000;
+                transition: all 0.4s ease-in-out;
+            }
+
+                .toggle .slider::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: calc(var(--height));
+                    height: calc(var(--height));
+                    border-radius: calc(var(--height) / 2);
+                    background-color: #fff;
+                    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+                    transition: all 0.4s ease-in-out;
+                }
+
+            .toggle input:checked + .slider {
+                background-color: #BADA55;
+            }
+
+                .toggle input:checked + .slider::before {
+                    transform: translateX(calc(var(--width) - var(--height)));
+                }
+
+            .toggle .labels {
+                position: absolute;
+                top: 8px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                font-size: 18px;
+                font-family: sans-serif;
+                transition: all 0.4s ease-in-out;
+            }
+
+                .toggle .labels::after {
+                    content: attr(data-off);
+                    position: absolute;
+                    right: 5px;
+                    color: #4d4d4d;
+                    opacity: 1;
+                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+                    transition: all 0.4s ease-in-out;
+                }
+
+                .toggle .labels::before {
+                    content: attr(data-on);
+                    position: absolute;
+                    left: 5px;
+                    color: #ffffff;
+                    opacity: 0;
+                    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.4);
+                    transition: all 0.4s ease-in-out;
+                }
+
+            .toggle input:checked ~ .labels::after {
+                opacity: 0;
+            }
+
+            .toggle input:checked ~ .labels::before {
+                opacity: 1;
+            }
+
+    </style>
+</head>
+<body>
+    <div id="placebetsform" class="continput">
+        <ul style="background-color:#C9C9C9;">
+            <li>
+                <input checked="checked" type="radio" id="1" name="teamOptions1" value="1">
+                <label style="color:#4F0000;" id="option1Label" for="1">17 years or younger</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="2" name="teamOptions2" value="2">
+                <label style="color:#6B0000;" id="option2Label" for="2">18 - 64 years</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="3" name="teamOptions3" value="3">
+                <label style="color:#940000;" id="option3Label" for="3">65 years or older</label>
+                <div class="bullet">
+                </div>
+            </li>
+            <label class="toggle">
+                <input name="isReady" type="checkbox">
+                <span class="slider"></span>
+                <span class="labels" data-on="PRÈT" data-off="PAS PRÈT"></span>
+            </label>
+        </ul>
+        
+    </div>
+
+  
+</body>
+</html>
