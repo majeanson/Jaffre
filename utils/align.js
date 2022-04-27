@@ -23,6 +23,9 @@ export default class Align
 	static center5(game, obj) {
 		obj.x = game.config.width / 5 - obj.displayWidth / 5;
 	}
+	static center6(game, obj) {
+		obj.x = game.config.width / 6 - obj.displayWidth / 6;
+	}
 	static center(game,obj)
 	{
 		obj.x = game.config.width/2;

@@ -374,7 +374,8 @@ const joinLobby = (userName, lobbyName, asObservator) => {
                 isDeckHolder: false,
                 isMyTurn: false,
                 trickPoints: 0,
-                displayName: ''
+                displayName: '',
+                bet: 'empty'
             });
         }
         lobbys.push(newLobby);
@@ -480,9 +481,33 @@ io.on('connection', function (socket) {
         if (readyCnt < allPlayersCnt) {
             changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
         } else if (readyCnt == allPlayersCnt) {
-            changeGameState('placeBets', 'La partie d\u00E9bute. Placez vos mises', lobbys[lobbyIdx]);
+            let randomPlayerIdx = Math.ceil(Math.random() * 4);
+            console.log('randomPlayerIdx', randomPlayerIdx);
+            dealCards(lobby.players[randomPlayerIdx - 1].displayName, lobbyIdx);
+            let nextPlayerIndex = randomPlayerIdx + 1;
+            if (nextPlayerIndex === 4) {
+                nextPlayerIndex = 0;
+            }
+
+
+            changeGameState('placeBets', 'La partie d\u00E9bute. ' + "C'est au joueur " + nextPlayerIndex + " de miser", lobbys[lobbyIdx]);
         }
         
+    })
+
+    socket.on('playerBetServer', function (lobby, userName, bet) {
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+        lobbys[lobbyIdx].players[playerIndex].bet = bet;
+        lobbys[lobbyIdx].players[playerIndex]['isMyTurn'] = false;
+        let nextPlayerIndex = playerIndex + 1;
+        if (nextPlayerIndex === 4) {
+            nextPlayerIndex = 0;
+        }
+        if (lobbys[lobbyIdx].players[nextPlayerIndex]) {
+            lobbys[lobbyIdx].players[nextPlayerIndex]['isMyTurn'] = true;
+        }
+        changeGameState('placeBets', "C'est au joueur " + (nextPlayerIndex + 1) + " de miser", lobbys[lobbyIdx]);
     })
 
     socket.on('teamSelectedServer', function (lobby, choice, userName) {

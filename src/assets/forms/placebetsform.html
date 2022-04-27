@@ -4,11 +4,11 @@
     <style>
         @import url(https://fonts.googleapis.com/css?family=Roboto:400,300,500,700);
 
-        ::selection {
+        #placebetsform ::selection {
             background: none;
         }
 
-        body {
+        #placebetsform body {
             background: #BADA55;
             font-family: 'Roboto';
             font-weight: 500;
@@ -18,7 +18,7 @@
             height: 100%;
         }
 
-        h1 {
+        #placebetsform h1 {
             font-weight: 100;
             text-align: center;
             margin: 0;
@@ -26,7 +26,7 @@
             font-size: 50px;
         }
 
-        h4 {
+        #placebetsform h4 {
             font-weight: 400;
             text-align: center;
             margin: 0;
@@ -34,7 +34,7 @@
             margin-bottom: 50px;
         }
 
-        .continput {
+        #placebetsform .continput {
             position: absolute;
             top: 0;
             left: 0;
@@ -47,7 +47,7 @@
             box-sizing: border-box;
         }
 
-        ul {
+        #placebetsform ul {
             list-style-type: none;
             width: 250px;
             margin: auto;
@@ -55,15 +55,15 @@
             left: -10px;
         }
 
-        li {
+        #placebetsform li {
             position: relative;
-            padding: 10px;
-            padding-left: 40px;
-            height: 100px;
-            text-align:center;
+            padding: 5px;
+            padding-left: 20px;
+            height: 22px;
+            text-align: center;
         }
 
-        label:before {
+        #placebetsform label:before {
             content: "";
             width: 15px;
             height: 15px;
@@ -75,7 +75,7 @@
             border-radius: 50%;
         }
 
-        input[type="radio"] {
+        #placebetsform input[type="radio"] {
             opacity: 0;
             -webkit-appearance: none;
             display: inline-block;
@@ -84,32 +84,32 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 30px;
+            height: 40px;
             position: absolute;
             left: 0;
             top: calc(50% - 15px);
             cursor: pointer;
         }
 
-        .bullet {
+        #placebetsform .bullet {
             position: relative;
             width: 25px;
             height: 25px;
             left: -3px;
-            top: 38px;
+            top: -6px;
             border: 5px solid #8F4848;
             opacity: 0;
             border-radius: 50%;
         }
 
-        input[type="radio"]:checked ~ .bullet {
+        #placebetsform input[type="radio"]:checked ~ .bullet {
             position: absolute;
             opacity: 1;
             animation-name: explode;
             animation-duration: 0.350s;
         }
 
-        .line {
+        #placebetsform .line {
             position: absolute;
             width: 10px;
             height: 2px;
@@ -169,56 +169,56 @@
                 height: 10px;
             }
 
-        input[type="radio"]:checked ~ .bullet .line.zero {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.zero {
             animation-name: drop-zero;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.one {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.one {
             animation-name: drop-one;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.two {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.two {
             animation-name: drop-two;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.three {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.three {
             animation-name: drop-three;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.four {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.four {
             animation-name: drop-four;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.five {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.five {
             animation-name: drop-five;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.six {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.six {
             animation-name: drop-six;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        input[type="radio"]:checked ~ .bullet .line.seven {
+        #placebetsform input[type="radio"]:checked ~ .bullet .line.seven {
             animation-name: drop-seven;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
@@ -386,7 +386,7 @@
             }
         }
 
-        .toggle {
+        #placebetsform .toggle {
             --width: 130px;
             --height: calc(var(--width) / 4);
             position: relative;
@@ -479,28 +479,83 @@
     <div id="placebetsform" class="continput">
         <ul style="background-color:#C9C9C9;">
             <li>
-                <input checked="checked" type="radio" id="1" name="teamOptions1" value="1">
-                <label style="color:#4F0000;" id="option1Label" for="1">17 years or younger</label><br>
+                <input type="radio" id="pass" name="pass" value="pass">
+                <label style="color:#4F0000;" id="passLabel" for="1">Pass</label><br>
                 <div class="bullet">
                 </div>
             </li>
             <li>
-                <input type="radio" id="2" name="teamOptions2" value="2">
-                <label style="color:#6B0000;" id="option2Label" for="2">18 - 64 years</label><br>
+                <input type="radio" id="7" name="7" value="7">
+                <label style="color:#4F0000;" id="7Label" for="1">7</label><br>
                 <div class="bullet">
                 </div>
             </li>
             <li>
-                <input type="radio" id="3" name="teamOptions3" value="3">
-                <label style="color:#940000;" id="option3Label" for="3">65 years or older</label>
+                <input type="radio" id="7_sa" name="7_sa" value="7_sa">
+                <label style="color:#6B0000;" id="7_saLabel" for="2">7 sans atout</label><br>
                 <div class="bullet">
                 </div>
             </li>
-            <label class="toggle">
-                <input name="isReady" type="checkbox">
-                <span class="slider"></span>
-                <span class="labels" data-on="PRÈT" data-off="PAS PRÈT"></span>
-            </label>
+            <li>
+                <input type="radio" id="8" name="8" value="8">
+                <label style="color:#940000;" id="8Label" for="3">8</label>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="8_sa" name="8_sa" value="8_sa">
+                <label style="color:#4F0000;" id="8_saLabel" for="1">8 sans atout</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="9" name="9" value="9">
+                <label style="color:#6B0000;" id="9Label" for="2">9</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="9_sa" name="9_sa" value="9_sa">
+                <label style="color:#6B0000;" id="9_saLabel" for="2">9 sans atout</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li >
+                <input disabled type="radio" id="10" name="10" value="10">
+                <label style="color:#6B0000;" id="10Label" for="2">10</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="10_sa" name="10_sa" value="10_sa">
+                <label style="color:#6B0000;" id="10_saLabel" for="2">10 sans atout</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="11" name="11" value="11">
+                <label style="color:#6B0000;" id="11Label" for="2">11</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="11_sa" name="11_sa" value="11_sa">
+                <label style="color:#6B0000;" id="11_saLabel" for="2">11 sans atout</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="12" name="12" value="12">
+                <label style="color:#6B0000;" id="12Label" for="2">12</label><br>
+                <div class="bullet">
+                </div>
+            </li>
+            <li>
+                <input type="radio" id="12_sa" name="12_sa" value="12_sa">
+                <label style="color:#6B0000;" id="12_saLabel" for="2">12 sans atout</label><br>
+                <div class="bullet">
+                </div>
+            </li>
         </ul>
         
     </div>

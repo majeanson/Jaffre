@@ -12,7 +12,7 @@ export default class UIGameHandler{
 
         this.buildChooseTeamsForm = () => {
             scene.chooseTeamsForm = scene.add.dom(0, -700).createFromHTML(chooseteamsform);
-            Align.center5(scene.game, scene.chooseTeamsForm);
+            Align.center6(scene.game, scene.chooseTeamsForm);
             scene.chooseTeamsForm.setPerspective(800);
             scene.chooseTeamsForm.addListener('click');
             if (scene.lobby) {
@@ -31,19 +31,19 @@ export default class UIGameHandler{
 
         this.buildPlaceBetsForm = () => {
             scene.placeBetsForm = scene.add.dom(0, -700).createFromHTML(placebetsform);
-            Align.center5(scene.game, scene.placeBetsForm);
+            Align.center6(scene.game, scene.placeBetsForm);
             scene.placeBetsForm.setPerspective(800);
             scene.placeBetsForm.addListener('click');
             if (scene.lobby) {
                 this.toggleShowPlaceBetsForm(scene.lobby);
             }
             scene.placeBetsForm.on('click', function (event) {
-                console.log(event.target.name);
-                //if (event.target.name == 'isReady') {
-                //    this.scene.socket.emit('playerIsReadyServer', this.scene.lobby, scene.fb.getUser().displayName);
-                //} else if (event.target.name == 'teamOptions1' || event.target.name == 'teamOptions2' || event.target.name == 'teamOptions3') {
-                //    this.scene.socket.emit('teamSelectedServer', this.scene.lobby, event.target.id, scene.fb.getUser().displayName);
-                //}
+                const playerNameTurn = this.scene.lobby.players.find(player => player.isMyTurn).displayName;
+                if (this.scene.fb.getUser().displayName == playerNameTurn) {
+                    this.scene.socket.emit('playerBetServer', this.scene.lobby, scene.fb.getUser().displayName, event.target.name);
+                } else {
+                    event.preventDefault();
+                }
             });
         }
 
@@ -69,10 +69,16 @@ export default class UIGameHandler{
             
             //const currentPlayerIdx = lobby.players.findIndex(player => player.displayName == scene.fb.getUser().displayName);
 
-            //var r = document.getElementsByTagName("label");
-            //document.getElementById('1').checked = lobby.teamChoice == '1';
-            //document.getElementById('2').checked = lobby.teamChoice == '2';
-            //document.getElementById('3').checked = lobby.teamChoice == '3';
+            var r = document.getElementsByTagName("label");
+            console.log(r);
+            lobby.players.forEach((player) => {
+                this.toggleCheckboxByPlayer(player, lobby);
+            })
+            //document.getElementById('7').checked = lobby.teamChoice == '1';
+            //document.getElementById('8').checked = lobby.teamChoice == '2';
+            //document.getElementById('9').checked = lobby.teamChoice == '3';
+
+
             //console.log(currentPlayerIdx, lobby.players[currentPlayerIdx]);
             //document.getElementsByName('isReady')[0].checked = lobby.players[currentPlayerIdx]?.isReady;
 
@@ -80,7 +86,157 @@ export default class UIGameHandler{
             //r[1].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[2].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[3].displayName;
             //r[2].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[3].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[2].displayName;
 
-            //scene.backCard.visible = !formIsUp;
+
+
+
+            scene.backCard.visible = !formIsUp;
+        }
+
+        this.toggleCheckboxByPlayer = (player, lobby) => {
+            this.checkboxIsChecked(lobby, player.bet, 'pass');
+            this.checkboxIsChecked(lobby, player.bet, '7');
+            this.checkboxIsChecked(lobby, player.bet, '7_sa');
+            this.checkboxIsChecked(lobby, player.bet, '8');
+            this.checkboxIsChecked(lobby, player.bet, '8_sa');
+            this.checkboxIsChecked(lobby, player.bet, '9');
+            this.checkboxIsChecked(lobby, player.bet, '9_sa');
+            this.checkboxIsChecked(lobby, player.bet, '10');
+            this.checkboxIsChecked(lobby, player.bet, '10_sa');
+            this.checkboxIsChecked(lobby, player.bet, '11');
+            this.checkboxIsChecked(lobby, player.bet, '11_sa');
+            this.checkboxIsChecked(lobby, player.bet, '12');
+            this.checkboxIsChecked(lobby, player.bet, '12_sa');
+
+            this.checkboxIsDisable(lobby, 'pass');
+            this.checkboxIsDisable(lobby, '7');
+            this.checkboxIsDisable(lobby, '7_sa');
+            this.checkboxIsDisable(lobby, '8');
+            this.checkboxIsDisable(lobby, '8_sa');
+            this.checkboxIsDisable(lobby, '9');
+            this.checkboxIsDisable(lobby, '9_sa');
+            this.checkboxIsDisable(lobby, '10');
+            this.checkboxIsDisable(lobby, '10_sa');
+            this.checkboxIsDisable(lobby, '11');
+            this.checkboxIsDisable(lobby, '11_sa');
+            this.checkboxIsDisable(lobby, '12');
+            this.checkboxIsDisable(lobby, '12_sa');
+        }
+
+        this.checkboxIsChecked = (lobby, bet, val) => {
+            const labelId = val + 'Label';
+            const innerHtml = document.getElementById(labelId).innerHTML;
+            let playersWithThisBet = [];
+            lobby.players.forEach(player => {
+                if (player.bet == val) {
+                    if (playersWithThisBet.findIndex(thePlayer => thePlayer == player.displayName.substring(0, 4)) == -1) {
+                        playersWithThisBet.push(player.displayName.substring(0, 4) + '..');
+                    }
+                }
+            });
+
+            let result = '';
+            let betValue = this.getBetValue(val);
+            if (betValue == -1) {
+                result = 'Pass';
+            } else {
+                const sa = this.getIsSA(val) ? ' Sans atout' : '';
+                result = betValue + sa;
+            }
+            if (playersWithThisBet.length > 0) {
+                document.getElementById(labelId).innerHTML = result + ' (' + playersWithThisBet.join(', ') + ')';
+            } 
+        }
+
+        this.getBetValue = (value) => {
+            if (value == 'pass' || value == 'empty') {
+                return -1;
+            } else {
+                return value.split('_')[0];
+            }
+        }
+
+        this.getIsSA = (value) => {
+            if (value == 'pass' || value == 'empty') {
+                return false;
+            }
+            const splitStr = value.split('_');
+            if (splitStr[1]) {
+                return splitStr[1] == 'sa'
+            } else {
+                return false;
+            }
+        }
+
+        this.findHighestFoundBet = (lobby) => {
+            let highestFoundBet = 'pass';
+            let highestFoundValue = -1;
+            let highestFoundValueIsSA = false;
+            lobby.players.forEach(player => {
+                let isHighest = false;
+                if (player.bet !== 'pass') {
+                    const betValue = this.getBetValue(player.bet);
+                    const betIsSa = this.getIsSA(player.bet);
+
+                    if (betValue >= highestFoundValue) {
+                        if (betValue > highestFoundValue) {
+                            isHighest = true;
+                        }
+                        if (betValue == highestFoundValue) {
+                            if (betIsSa && !highestFoundValueIsSA) {
+                                isHighest = true;
+                            }
+                        }
+                    }
+                    if (isHighest) {
+                        highestFoundBet = player.bet;
+                        highestFoundValue = betValue;
+                        highestFoundValueIsSA = betIsSa;
+                    }
+                }
+            });
+            return highestFoundBet;
+        }
+
+        this.checkboxIsDisable = (lobby, val) => {
+
+            const playerNameTurn = lobby.players.find(player => player.isMyTurn)?.displayName;
+            const isLastPlayerToBet = lobby.players.filter(player => player.bet == 'empty').length == 1;
+            console.log('val ? ', val);
+            if (scene.fb.getUser().displayName !== playerNameTurn) {
+                return true;
+            }
+
+            const highestFoundBet = this.findHighestFoundBet(lobby);
+            console.log('highestFoundBet ', highestFoundBet);
+            let isDisable = false;
+            let shouldSkip = false;
+            if (val == 'pass') {
+                isDisable = isLastPlayerToBet;
+                shouldSkip = true;
+            }
+            if (highestFoundBet && !shouldSkip) {
+                const betValue = this.getBetValue(val);
+                const betIsSa = this.getIsSA(val);
+                const highestFoundValue = this.getBetValue(highestFoundBet);
+                const highestFoundValueIsSA = this.getIsSA(highestFoundBet);
+                let isHighest = false;
+                if (betValue >= highestFoundValue) {
+                    if (betValue > highestFoundValue) {
+                        isHighest = true;
+                    }
+                    if (betValue == highestFoundValue) {
+                        if (betIsSa && !highestFoundValueIsSA) {
+                            isHighest = true;
+                        }
+                    }
+                }
+                isDisable = !isHighest;
+            } else if (!shouldSkip) {
+                isDisable = false;
+            }
+            console.log('isDisable ? ', isDisable, val);
+            document.getElementById(val).disabled = isDisable;
+
         }
 
         this.toggleShowChooseTeamsForm = (lobby) => {
