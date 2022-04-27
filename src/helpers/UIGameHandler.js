@@ -25,6 +25,7 @@ export default class UIGameHandler{
                     this.scene.socket.emit('playerIsReadyServer', this.scene.lobby, scene.fb.getUser().displayName);
                 } else if (event.target.name == 'teamOptions1' || event.target.name == 'teamOptions2' || event.target.name == 'teamOptions3'){
                     this.scene.socket.emit('teamSelectedServer', this.scene.lobby, event.target.id, scene.fb.getUser().displayName);
+                    
                 }
             });
         }
@@ -66,28 +67,12 @@ export default class UIGameHandler{
                     ease: 'Power3'
                 });
             }
-            
-            //const currentPlayerIdx = lobby.players.findIndex(player => player.displayName == scene.fb.getUser().displayName);
 
             var r = document.getElementsByTagName("label");
             console.log(r);
             lobby.players.forEach((player) => {
                 this.toggleCheckboxByPlayer(player, lobby);
             })
-            //document.getElementById('7').checked = lobby.teamChoice == '1';
-            //document.getElementById('8').checked = lobby.teamChoice == '2';
-            //document.getElementById('9').checked = lobby.teamChoice == '3';
-
-
-            //console.log(currentPlayerIdx, lobby.players[currentPlayerIdx]);
-            //document.getElementsByName('isReady')[0].checked = lobby.players[currentPlayerIdx]?.isReady;
-
-            //r[0].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[1].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[2].displayName + ' ' + lobby.players[3].displayName;
-            //r[1].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[2].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[3].displayName;
-            //r[2].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[3].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[2].displayName;
-
-
-
 
             scene.backCard.visible = !formIsUp;
         }
@@ -151,7 +136,7 @@ export default class UIGameHandler{
             if (value == 'pass' || value == 'empty') {
                 return -1;
             } else {
-                return value.split('_')[0];
+                return parseInt(value.split('_')[0]);
             }
         }
 
@@ -211,7 +196,7 @@ export default class UIGameHandler{
             let isDisable = false;
             let shouldSkip = false;
             if (val == 'pass') {
-                isDisable = isLastPlayerToBet;
+                isDisable = isLastPlayerToBet && highestFoundBet == 'pass';
                 shouldSkip = true;
             }
             if (highestFoundBet && !shouldSkip) {

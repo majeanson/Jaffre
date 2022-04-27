@@ -56,12 +56,6 @@ export default class SocketHandler {
 
         })
 
-        scene.socket.on('endTheTrick', (lobby, winningPlayerIndex, isEndOfRound) => {
-            if (lobby) {
-                scene.GameHandler.endTurn(lobby, winningPlayerIndex, isEndOfRound);
-            }
-        })
-
         scene.socket.on('joinLobbySelection', (userName, lobby, asObservator) => {
             console.log('joinLobbySelection', userName, lobby, asObservator);
             if (lobby) {

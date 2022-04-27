@@ -103,16 +103,5 @@ export default class GameHandler {
             return currentTurnIdx;
         }        
 
-        this.endTurn = (lobby, winningPlayerIndex, isEndOfRound) => {
-            scene.DeckHandler.endTurn(lobby);
-            let message = isEndOfRound ? "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + 'Fin de la manche.' : "Le joueur " + (winningPlayerIndex + 1) + ' a remporter la lev\u00E9e. \u000A' + "C'est \u00E0 son tour.";
-            if (isEndOfRound) {
-                this.emitChangeState('roundEnded', message, lobby);
-            } else {
-                this.emitChangeState(lobby.gameState, message, lobby);
-            }
-            
-        }
-
     }
 }

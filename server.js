@@ -76,6 +76,15 @@ const getShuffledCards = () => {
     return clone;
 }
 
+const betValue = (bet) => {
+    return bet.split('_')[0];
+}
+
+const betIsSa = (bet) => {
+    const sa = bet.split('_')[1];
+    return sa ? sa == 'sa' : false;
+}
+
 const getPlayerHand = (lobby, userName) => {
     return getPlayerByDisplayName(lobby, userName)?.inHand;
 }
@@ -110,6 +119,7 @@ const cardPlayed = (lobby, userName, cardName) => {
         let message = lobbys[lobbyIdx].gameStateMessage = userName + ' a jou\u00E9 la derni\u00E8re carte' + '\u000A';
         message = message + "C'est au joueur " + (nextPlayerIndex + 1) + ' (' + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ')' + ' de jouer';
         lobbys[lobbyIdx].gameStateMessage = message;
+
         return true;
     }
 
@@ -211,16 +221,64 @@ const dealCards = (userName, lobbyIdx) => {
     lobbys[lobbyIdx].deadZone = [];
 }
 
+const getDeckHolderIdx = (lobby) => {
+    lobby.players.findIndex(player => player.isDeckHolder);
+}
+
 const endTheTrick = (lobby) => {
-    const winningPlayerIndex = findTheWinningCardAndAddPoints()
-    lobby.deadZone.push(...lobby.currentDropZone);
-    lobby.currentDropZone = [];
-    lobby.players[0]['isMyTurn'] = false;
-    lobby.players[1]['isMyTurn'] = false;
-    lobby.players[2]['isMyTurn'] = false;
-    lobby.players[3]['isMyTurn'] = false;
-    lobby.players[winningPlayerIndex]['isMyTurn'] = true;
-    io.emit('endTheTrick', lobby, winningPlayerIndex, isEndOfRound());
+    const lobbyIdx = getLobbyIndexByName(lobby.name);
+    findTheWinningCardAndAddPoints(lobbys[lobbyIdx])
+    lobbys[lobbyIdx].deadZone.push(...lobbys[lobbyIdx].currentDropZone);
+    lobbys[lobbyIdx].currentDropZone = [];
+    
+    const deckHolderIdx = getDeckHolderIdx(lobby);
+    let nextDeckHolderIndex = deckHolderIdx + 1;
+    if (nextDeckHolderIndex === 4) {
+        nextDeckHolderIndex = 0;
+    }
+    lobbys[lobbyIdx].players[deckHolderIdx]['isDeckHolder'] = false;
+    lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[2]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[3]['isMyTurn'] = false;
+
+    lobbys[lobbyIdx].players[nextDeckHolderIndex]['isDeckHolder'] = true;
+    lobbys[lobbyIdx].players[nextDeckHolderIndex]['isMyTurn'] = true;
+    let nextPlayerToPlayIndex = nextDeckHolderIndex + 1;
+    if (nextPlayerToPlayIndex === 4) {
+        nextPlayerToPlayIndex = 0;
+    }
+    const highestBetPlayerIdx = getHighestBetPlayerIdx(lobbys[lobbyIdx]);
+    
+    const abetValue = findHighestFoundBet(lobbys[lobbyIdx]).split('_')[0];
+    const abetSA = findHighestFoundBet(lobbys[lobbyIdx]).split('_')[1];
+    let pointsToPotentiallyWin = abetValue;
+    if (abetSA) {
+        pointsToPotentiallyWin = pointsToPotentiallyWin * 2;
+    }
+    if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints >= pointsToPotentiallyWin) {
+        lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score + pointsToPotentiallyWin;
+    } else if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints < pointsToPotentiallyWin) {
+        lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score - pointsToPotentiallyWin;
+    }
+    if (highestBetPlayerIdx == 0 || highestBetPlayerIdx == 2) {
+        let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
+        if (defenderTrickPoints > 0) {
+            lobbys[lobbyIdx].players[1].score = lobbys[lobbyIdx].players[1].score + defenderTrickPoints;
+        }
+    } else if (highestBetPlayerIdx == 1 || highestBetPlayerIdx == 3) {
+        let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
+        if (defenderTrickPoints > 0) {
+            lobbys[lobbyIdx].players[0].score = lobbys[lobbyIdx].players[0].score + defenderTrickPoints;
+        }
+    }
+    changeGameState('gameStarted', 'Nouvelle manche. \u00C0 ' + lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName + ' de jouer');
+}
+
+const getHighestBetPlayerIdx = (lobby) => {
+    const highest = findHighestFoundBet(lobby);
+    console.log('higheest bet is ', highest, 'by player idx ', lobby.players.findIndex(player => player.bet == highest))
+    return lobby.players.findIndex(player => player.bet == highest);
 }
 
 const isWinningOverAllAtouts = (lobby, atoutCard) => {
@@ -355,6 +413,38 @@ const readyCount = (players) => {
     return players.filter(player => player.isReady).length;
 }
 
+const findHighestFoundBet = (lobby) => {
+    let highestFoundBet = 'pass';
+    let highestFoundValue = -1;
+    let highestFoundValueIsSA = false;
+    console.log('searching for highest bet', lobby.players);
+    lobby.players.forEach(player => {
+        let isHighest = false;
+        if (player.bet !== 'pass') {
+            const abetValue = betValue(player.bet);
+            const abetIsSa = betIsSa(player.bet);
+
+            if (abetValue >= highestFoundValue) {
+                if (abetValue > highestFoundValue) {
+                    isHighest = true;
+                }
+                if (abetValue == highestFoundValue) {
+                    if (abetIsSa && !highestFoundValueIsSA) {
+                        isHighest = true;
+                    }
+                }
+            }
+            if (isHighest) {
+                highestFoundBet = player.bet;
+                highestFoundValue = abetValue;
+                highestFoundValueIsSA = abetIsSa;
+            }
+        }
+        console.log(highestFoundBet, highestFoundValue, highestFoundValueIsSA, player.bet);
+    });
+    return highestFoundBet;
+}
+
 const joinLobby = (userName, lobbyName, asObservator) => {
     let lobby = lobbys.find(lobby => lobby.name === lobbyName);
     if (!lobby) {
@@ -374,6 +464,7 @@ const joinLobby = (userName, lobbyName, asObservator) => {
                 isDeckHolder: false,
                 isMyTurn: false,
                 trickPoints: 0,
+                score: 0,
                 displayName: '',
                 bet: 'empty'
             });
@@ -405,25 +496,25 @@ const joinLobby = (userName, lobbyName, asObservator) => {
 }
 
 io.on('connection', function (socket) {
-    socket.on('dealCards', function (userName, lobby) {
-        const lobbyIdx = getLobbyIndexByName(lobby.name);
-        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
-        dealCards(userName, lobbyIdx);
-        lobbys[lobbyIdx].gameState = 'gameStarted';
-        let nextPlayerIndex = playerIndex + 1;
-        if (nextPlayerIndex === 4) {
-            nextPlayerIndex = 0;
-        }
+    //socket.on('dealCards', function (userName, lobby) {
+    //    const lobbyIdx = getLobbyIndexByName(lobby.name);
+    //    const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+    //    dealCards(userName, lobbyIdx);
+    //    lobbys[lobbyIdx].gameState = 'gameStarted';
+    //    let nextPlayerIndex = playerIndex + 1;
+    //    if (nextPlayerIndex === 4) {
+    //        nextPlayerIndex = 0;
+    //    }
 
-        lobbys[lobbyIdx].gameStateMessage = 'La partie a d\u00E9buter. \u000A' + "C'est au joueur " + (nextPlayerIndex + 1) + ' (' + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ')' + ' de miser';
-        io.emit('refreshCards', lobbys[lobbyIdx]);
-        io.emit('refreshBackCard', lobbys[lobbyIdx]);
+    //    lobbys[lobbyIdx].gameStateMessage = 'La partie a d\u00E9buter. \u000A' + "C'est au joueur " + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ' de miser';
+    //    io.emit('refreshCards', lobbys[lobbyIdx]);
+    //    io.emit('refreshBackCard', lobbys[lobbyIdx]);
 
-    })
+    //})
 
     socket.on('chooseTeams', function (lobby) {
         const cnt = readyCount(lobby.players);
-        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + cnt + ' / 4 pru00EAts', lobby)
+        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + cnt + ' / 4 pru00E8ts', lobby)
     })
 
     socket.on('joinLobby', function (userName, lobbyName, asObservator) {
@@ -476,21 +567,34 @@ io.on('connection', function (socket) {
         console.log('playerIsReady ?? ', playerIsReady);
         lobbys[lobbyIdx].players[playerIndex]['isReady'] = !playerIsReady;
         const readyCnt = readyCount(lobbys[lobbyIdx].players);
-        console.log(lobbys[lobbyIdx].players);
+        console.log(lobbys[lobbyIdx].teamChoice);
         const allPlayersCnt = 4;
         if (readyCnt < allPlayersCnt) {
-            changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
+            changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00E8ts', lobbys[lobbyIdx])
         } else if (readyCnt == allPlayersCnt) {
-            let randomPlayerIdx = Math.ceil(Math.random() * 4);
-            console.log('randomPlayerIdx', randomPlayerIdx);
-            dealCards(lobby.players[randomPlayerIdx - 1].displayName, lobbyIdx);
-            let nextPlayerIndex = randomPlayerIdx + 1;
-            if (nextPlayerIndex === 4) {
-                nextPlayerIndex = 0;
+            const player0 = lobbys[lobbyIdx].players[0];
+            const player1 = lobbys[lobbyIdx].players[1];
+            const player2 = lobbys[lobbyIdx].players[2];
+            const player3 = lobbys[lobbyIdx].players[3];
+            switch (lobbys[lobbyIdx].teamChoice) {
+                case '1':
+                    lobbys[lobbyIdx].players[0] = player0;
+                    lobbys[lobbyIdx].players[1] = player2;
+                    lobbys[lobbyIdx].players[2] = player1;
+                    lobbys[lobbyIdx].players[3] = player3;
+                    break;
+                case '3':
+                    lobbys[lobbyIdx].players[0] = player0;
+                    lobbys[lobbyIdx].players[1] = player1;
+                    lobbys[lobbyIdx].players[2] = player3;
+                    lobbys[lobbyIdx].players[3] = player2;
+                    break;
             }
-
-
-            changeGameState('placeBets', 'La partie d\u00E9bute. ' + "C'est au joueur " + nextPlayerIndex + " de miser", lobbys[lobbyIdx]);
+            const rndInt = Math.floor(Math.random() * 4);
+            dealCards(lobbys[lobbyIdx].players[rndInt].displayName, lobbyIdx);
+            let vsMsg = lobbys[lobbyIdx].players[0].displayName.substring(0, 4) + '.' + ', ' + lobbys[lobbyIdx].players[2].displayName.substring(0, 4) + '.';
+            vsMsg = vsMsg + ' VS ' + lobbys[lobbyIdx].players[1].displayName.substring(0, 4) + '.' + ', ' + lobbys[lobbyIdx].players[3].displayName.substring(0, 4) + '.';
+            changeGameState('placeBets', vsMsg + "\u000A C'est au joueur " + lobbys[lobbyIdx].players[0].displayName + " de miser", lobbys[lobbyIdx]);
         }
         
     })
@@ -507,7 +611,19 @@ io.on('connection', function (socket) {
         if (lobbys[lobbyIdx].players[nextPlayerIndex]) {
             lobbys[lobbyIdx].players[nextPlayerIndex]['isMyTurn'] = true;
         }
-        changeGameState('placeBets', "C'est au joueur " + (nextPlayerIndex + 1) + " de miser", lobbys[lobbyIdx]);
+        const noMoreEmpties = lobbys[lobbyIdx].players.filter(player => player.bet == 'empty').length == 0;
+        if (noMoreEmpties) {
+            const highestBetPlayerIdx = getHighestBetPlayerIdx(lobbys[lobbyIdx]);
+            console.log(highestBetPlayerIdx, 'highest bet player is ', lobbys[lobbyIdx].players[highestBetPlayerIdx].displayName, 'with ', lobbys[lobbyIdx].players[highestBetPlayerIdx].bet);
+            lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
+            lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
+            lobbys[lobbyIdx].players[2]['isMyTurn'] = false;
+            lobbys[lobbyIdx].players[3]['isMyTurn'] = false;
+            lobbys[lobbyIdx].players[highestBetPlayerIdx]['isMyTurn'] = true;
+            changeGameState('gameStarted', "C'est au joueur " + lobbys[lobbyIdx].players[highestBetPlayerIdx].displayName + " de jouer", lobbys[lobbyIdx]);
+        } else {
+            changeGameState('placeBets', "C'est au joueur " + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + " de miser", lobbys[lobbyIdx]);
+        }
     })
 
     socket.on('teamSelectedServer', function (lobby, choice, userName) {
@@ -520,10 +636,8 @@ io.on('connection', function (socket) {
             arr[idx]['isReady'] = false;
         });
 
-        const player = getPlayerByDisplayName(lobby, userName);
-        console.log(playerIndex, userName, lobbys[lobbyIdx].players);
         lobbys[lobbyIdx].players[playerIndex]['isReady'] = true;
-        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCount(lobbys[lobbyIdx].players) + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
+        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCount(lobbys[lobbyIdx].players) + ' / 4 pr\u00E8ts', lobbys[lobbyIdx])
         io.emit('teamSelected', lobbys[lobbyIdx]);
     })
 
