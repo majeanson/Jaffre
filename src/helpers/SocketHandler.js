@@ -19,8 +19,6 @@ export default class SocketHandler {
 
         scene.socket.on('changeGameState', (lobby) => {
             if (lobby) {
-                scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
-                scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
                 scene.GameHandler.refreshCards(lobby);
             }
         })        

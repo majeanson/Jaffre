@@ -291,8 +291,12 @@ const endTheTrick = (lobby) => {
         lobbys[lobbyIdx].players[1]['trickPoints'] = 0;
         lobbys[lobbyIdx].players[2]['trickPoints'] = 0;
         lobbys[lobbyIdx].players[3]['trickPoints'] = 0;
-        dealCards(lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName, lobbyIdx);
-        changeGameState('gameStarted', 'Nouvelle manche. \u00C0 ' + lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName + ' de jouer', lobbys[lobbyIdx]);
+        lobbys[lobbyIdx].players[0]['bet'] = 'empty';
+        lobbys[lobbyIdx].players[1]['bet'] = 'empty';
+        lobbys[lobbyIdx].players[2]['bet'] = 'empty';
+        lobbys[lobbyIdx].players[3]['bet'] = 'empty';
+        dealCards(lobbys[lobbyIdx].players[nextDeckHolderIndex].displayName, lobbyIdx);
+        changeGameState('placeBets', "Nouvelle manche. \u000A C'est au joueur " + lobbys[lobbyIdx].players[0].displayName + " de miser", lobbys[lobbyIdx]);
         
     } else {
         changeGameState(lobby.gameState, "C'est au joueur " + lobbys[lobbyIdx].players[winningPlayerIdx].displayName + " de jouer", lobbys[lobbyIdx]);

@@ -121,6 +121,7 @@ export default class GameHandler {
         }
 
         this.refreshCards = (lobby) => {
+            const previousState = scene.lobby?.gameState;
             scene.lobby = lobby;
             scene.DeckHandler.renderCards(lobby);
             this.refreshTexts(lobby);
@@ -129,6 +130,13 @@ export default class GameHandler {
             if (scene.backCard) {
                 scene.backCard.visible = lobby.gameState == 'gameReady' || lobby.gameState == 'lobby';
             }
+            if (lobby.gameState == 'placeBets' && previousState !== lobby.gameState) {
+                scene.placeBetsForm = null;
+                scene.UIGameHandler?.buildPlaceBetsForm();
+            }
+            scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
+            scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
+            console.log(lobby);
         }
 
         this.getCurrentPlayer = () => {

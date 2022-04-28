@@ -104,7 +104,6 @@ export default class UIGameHandler{
 
         this.checkboxIsChecked = (lobby, bet, val) => {
             const labelId = val + 'Label';
-            const innerHtml = document.getElementById(labelId).innerHTML;
             let playersWithThisBet = [];
             lobby.players.forEach(player => {
                 if (player.bet == val) {
@@ -259,10 +258,12 @@ export default class UIGameHandler{
         }
 
         this.manageAtoutIconVisibility = () => {
-            scene.atoutFR.visible = scene.lobby?.atout == 'fr';
-            scene.atoutRU.visible = scene.lobby?.atout == 'ru';
-            scene.atoutAL.visible = scene.lobby?.atout == 'al';
-            scene.atoutAN.visible = scene.lobby?.atout == 'an';
+            if (scene.atoutFR && scene.atoutRU && scene.atoutAL && scene.atoutAN) {
+                scene.atoutFR.visible = scene.lobby?.atout == 'fr';
+                scene.atoutRU.visible = scene.lobby?.atout == 'ru';
+                scene.atoutAL.visible = scene.lobby?.atout == 'al';
+                scene.atoutAN.visible = scene.lobby?.atout == 'an';
+            }
         }
 
         this.buildScoreZone = () => {

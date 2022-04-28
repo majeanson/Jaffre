@@ -10,7 +10,7 @@ export default class DeckHandler {
             const currentUserName = scene.fb.getUser().displayName;
             const foundPlayerIndex = lobby.players?.findIndex(player => player.displayName == currentUserName);
             if (foundPlayerIndex > -1) {
-                return lobby.players[foundPlayerIndex].inHand;
+                return lobby.players[foundPlayerIndex]?.inHand;
             } else {
                 return [];
             }
@@ -29,7 +29,7 @@ export default class DeckHandler {
             const foundCard = this.findCard(card);
             if (foundCard) {
                 if (index === 500) {
-                    if (lobby.gameState == 'gameStarted' && lobby.deadZone.length !== 0) {
+                    if (lobby.gameState == 'gameStarted' || lobby.gameState == 'placeBets') {
                         this.longTweens.push(scene.tweens.add({
                             targets: foundCard,
                             x: -500,
@@ -39,10 +39,11 @@ export default class DeckHandler {
                     }
                 } else {
                     this.longTweens.forEach(aTween => {
-                        if (aTween.targets == foundCard || lobby.deadZone.length == 0) {
+                        if (aTween.targets == foundCard || lobby.deadZone.length == 0 || lobby.gameState == 'placeBets') {
                             aTween.stop();
                         }
                     });
+                    console.log(foundCard, foundCard.y);
                     scene.aGrid.placeAtIndex(index, foundCard);
                     scene.children.bringToTop(foundCard);
                     scene.tweens.add({
