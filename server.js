@@ -20,13 +20,14 @@ app.use(function (req, res, next) {
     next();
 });
 
-//const PORT = process.env.PORT || 80;
-const PORT = process.env.PORT || 51586;
+const PORT = process.env.PORT || 80;
+//const PORT = process.env.PORT || 51586;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
-const devEnv = true;//process.env.NODE_ENV !== "production";
+//const devEnv = true;
+const devEnv = process.env.NODE_ENV !== "production";
 const io = require('socket.io')(server, {
     cors: {
         origin: devEnv ? 'http://192.168.2.47:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
