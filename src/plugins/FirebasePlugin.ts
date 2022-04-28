@@ -50,7 +50,6 @@ export default class FirebasePlugin extends Phaser.Plugins.BasePlugin {
 	private readonly auth: Auth
 	private authStateChangedUnsubscribe: Unsubscribe
 	private onLoggedInCallback = (user) => {
-		console.log('loggin ', user);
 	}
 
 	private lastErrorMessage: string

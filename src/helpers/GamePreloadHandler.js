@@ -30,6 +30,10 @@ import ru_4 from '../assets/cards/ru_4.png';
 import ru_5 from '../assets/cards/ru_5.png';
 import ru_6 from '../assets/cards/ru_6.png';
 import ru_7 from '../assets/cards/ru_7.png';
+import al_atout from '../assets/cards/al_atout.png';
+import ru_atout from '../assets/cards/ru_atout.png';
+import fr_atout from '../assets/cards/fr_atout.png';
+import an_atout from '../assets/cards/an_atout.png';
 import hugeback from '../assets/cards/hugeback.png';
 import background from '../assets/icons/background.png';
 import score from '../assets/icons/score.png';
@@ -87,6 +91,10 @@ export default class GamePreloadHandler {
             scene.load.image('score', score);
             scene.load.image('redbutton', redbutton);
             scene.load.image('exit', exit);
+            scene.load.image('al_atout', al_atout);
+            scene.load.image('ru_atout', ru_atout);
+            scene.load.image('fr_atout', fr_atout);
+            scene.load.image('an_atout', an_atout);
         }
 
         this.preloadBackground = () => {

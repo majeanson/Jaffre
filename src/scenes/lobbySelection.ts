@@ -15,9 +15,7 @@ export default class LobbySelection extends BaseScreen {
     }
 
     joinLobbyNow(canJoinLobby, lobby) {
-        console.log('! ', canJoinLobby, ' !! ', lobby);
         if (canJoinLobby && lobby) {
-            
             this.fb.addUserToLobby(this.fb.getUser(), lobby.name);
             this.scene.stop('lobbySelection');
             this.scene.stop('welcome');
@@ -34,7 +32,6 @@ export default class LobbySelection extends BaseScreen {
     }
 
     init(data) {
-        console.log('init AHI', data);
         this.lobby = data.lobby;
     }
 

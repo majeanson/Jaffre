@@ -3,7 +3,6 @@ export default class GameHandler {
 
         this.isCurrentPlayerTurnDeck = () => {
             const currentPlayer = this.getCurrentPlayer();
-            console.log('isCurrentPlayerTurnDeck', currentPlayer);
             return currentPlayer ? currentPlayer['isMyTurn'] === true : false;
         }
 
@@ -30,7 +29,8 @@ export default class GameHandler {
             this.gameState = gameState;
             if (this.gameStateMessage) {
                 this.gameStateMessage = message;
-            } 
+            }
+            scene.UIGameHandler.manageAtoutIconVisibility(scene.lobby);
             scene.messageStatus?.setText(this.gameStateMessage);
             scene.playerName?.setText(scene.GameHandler.getPlayerName());
         }
@@ -39,27 +39,70 @@ export default class GameHandler {
             scene.socket.emit('emitChangeGameState', gameState, message, lobby);
         }
 
+        this.getGameTrickScoreText = () => {
+            return this.getPlayer1AndPlayer3TrickScore() + ' - ' + this.getPlayer2AndPlayer4TrickScore();
+        }
+
         this.getGameScoreText = () => {
             return this.getPlayer1AndPlayer3Score() + ' - ' + this.getPlayer2AndPlayer4Score();
         }
 
-        this.getPlayer1AndPlayer3Score = () => {
+        this.getGameTeamsText = () => {
+            return this.getPlayer1AndPlayer3Team() + ' - ' + this.getPlayer2AndPlayer4Team();
+        }
+
+        this.getBetText = () => {
+            return 'bet : ' + scene.UIGameHandler?.findHighestFoundBet(scene.lobby);
+        }
+
+        this.getPlayer1AndPlayer3Team = () => {
+            if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
+                return '';
+            }
+            return scene.lobby?.players[0]?.displayName.substring(0, 2) + scene.lobby?.players[2]?.displayName.substring(0, 2)
+        }
+
+        this.getPlayer2AndPlayer4Team = () => {
+            if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
+                return '';
+            }
+            return scene.lobby?.players[1].displayName.substring(0, 2) + scene.lobby?.players[3].displayName.substring(0, 2);
+        }
+
+        this.getPlayer1AndPlayer3TrickScore = () => {
             if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
                 return '0';
             }
             return parseInt(scene.lobby?.players[0]?.trickPoints) + parseInt(scene.lobby?.players[2]?.trickPoints);
         }
 
-        this.getPlayer2AndPlayer4Score = () => {
+        this.getPlayer2AndPlayer4TrickScore = () => {
             if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
                 return '0';
             }
             return parseInt(scene.lobby?.players[1].trickPoints) + parseInt(scene.lobby?.players[3].trickPoints);
         }
 
+        this.getPlayer1AndPlayer3Score = () => {
+            if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
+                return '0';
+            }
+            return parseInt(scene.lobby?.players[0]?.score) + parseInt(scene.lobby?.players[2]?.score);
+        }
+
+        this.getPlayer2AndPlayer4Score = () => {
+            if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
+                return '0';
+            }
+            return parseInt(scene.lobby?.players[1].score) + parseInt(scene.lobby?.players[3].score);
+        }
+
         this.refreshTexts = (lobby) => {
             scene.playerName?.setText(this.getPlayerName());
-            scene.score?.setText(this.getGameScoreText());
+            scene.score?.setText(this.getGameTrickScoreText());
+            scene.gameScore?.setText(this.getGameScoreText());
+            scene.gameTeams?.setText(this.getGameTeamsText());
+            scene.bet?.setText(this.getBetText());
             scene.messageStatus?.setText(lobby.gameStateMessage);
         }
 
@@ -77,12 +120,15 @@ export default class GameHandler {
             scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
         }
 
-        this.refreshCards = (lobby, mode) => {
+        this.refreshCards = (lobby) => {
             scene.lobby = lobby;
-            console.log('refreshing cards', lobby);
-            scene.DeckHandler.renderCards(lobby, mode);
+            scene.DeckHandler.renderCards(lobby);
             this.refreshTexts(lobby);
             this.refreshBackCard(lobby);
+            scene.UIGameHandler?.manageAtoutIconVisibility(lobby);
+            if (scene.backCard) {
+                scene.backCard.visible = lobby.gameState == 'gameReady' || lobby.gameState == 'lobby';
+            }
         }
 
         this.getCurrentPlayer = () => {

@@ -19,8 +19,6 @@ export default class UIGameHandler{
                 this.toggleShowChooseTeamsForm(scene.lobby);
             }
             scene.chooseTeamsForm.on('click', function (event) {
-                console.log(event.target);
-                console.log(event.target.name);
                 if (event.target.name == 'isReady') {
                     this.scene.socket.emit('playerIsReadyServer', this.scene.lobby, scene.fb.getUser().displayName);
                 } else if (event.target.name == 'teamOptions1' || event.target.name == 'teamOptions2' || event.target.name == 'teamOptions3'){
@@ -69,12 +67,9 @@ export default class UIGameHandler{
             }
 
             var r = document.getElementsByTagName("label");
-            console.log(r);
             lobby.players.forEach((player) => {
                 this.toggleCheckboxByPlayer(player, lobby);
             })
-
-            scene.backCard.visible = !formIsUp;
         }
 
         this.toggleCheckboxByPlayer = (player, lobby) => {
@@ -186,13 +181,11 @@ export default class UIGameHandler{
 
             const playerNameTurn = lobby.players.find(player => player.isMyTurn)?.displayName;
             const isLastPlayerToBet = lobby.players.filter(player => player.bet == 'empty').length == 1;
-            console.log('val ? ', val);
             if (scene.fb.getUser().displayName !== playerNameTurn) {
                 return true;
             }
 
             const highestFoundBet = this.findHighestFoundBet(lobby);
-            console.log('highestFoundBet ', highestFoundBet);
             let isDisable = false;
             let shouldSkip = false;
             if (val == 'pass') {
@@ -219,7 +212,6 @@ export default class UIGameHandler{
             } else if (!shouldSkip) {
                 isDisable = false;
             }
-            console.log('isDisable ? ', isDisable, val);
             document.getElementById(val).disabled = isDisable;
 
         }
@@ -250,14 +242,11 @@ export default class UIGameHandler{
             document.getElementById('1').checked = lobby.teamChoice == '1';
             document.getElementById('2').checked = lobby.teamChoice == '2';
             document.getElementById('3').checked = lobby.teamChoice == '3';
-            console.log(currentPlayerIdx, lobby.players[currentPlayerIdx]);
             document.getElementsByName('isReady')[0].checked = lobby.players[currentPlayerIdx]?.isReady;
             
             r[0].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[1].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[2].displayName + ' ' + lobby.players[3].displayName;
             r[1].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[2].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[3].displayName;
             r[2].innerHTML = lobby.players[0].displayName + ' ' + lobby.players[3].displayName + "<br />" + ' VS ' + "<br />" + lobby.players[1].displayName + ' ' + lobby.players[2].displayName;
-
-            scene.backCard.visible = !formIsUp;
         }
 
 
@@ -267,6 +256,13 @@ export default class UIGameHandler{
             scene.aGrid.placeAtIndex(82, scene.backGround);
             Align.scaleToGameW(scene.game, scene.backGround, 1);
             scene.children.sendToBack(scene.backgGround);
+        }
+
+        this.manageAtoutIconVisibility = () => {
+            scene.atoutFR.visible = scene.lobby?.atout == 'fr';
+            scene.atoutRU.visible = scene.lobby?.atout == 'ru';
+            scene.atoutAL.visible = scene.lobby?.atout == 'al';
+            scene.atoutAN.visible = scene.lobby?.atout == 'an';
         }
 
         this.buildScoreZone = () => {
@@ -279,13 +275,30 @@ export default class UIGameHandler{
             scene.aGrid.placeAtIndex(15.2, scene.score);
             Align.scaleToGameW(scene.game, scene.score, 0.15);
 
+            scene.gameTeams = scene.add.text(0, 0, '').setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x005c5b);
+            scene.gameTeams.setText('XX - YY');
+            scene.aGrid.placeAtIndex(11, scene.gameTeams);
+            Align.scaleToGameW(scene.game, scene.gameTeams, 0.15);
+
+            scene.bet = scene.add.text(0, 0, '').setFontSize(120).setFontFamily("Trebuchet MS").setTint(0x005c5b);
+            scene.bet.setText('bet : ');
+            scene.aGrid.placeAtIndex(33, scene.bet);
+            Align.scaleToGameW(scene.game, scene.bet, 0.2);
+
+            scene.gameScore = scene.add.text(0, 0, '').setFontSize(100).setFontFamily("Trebuchet MS").setTint(0x241446);
+            scene.gameScore.setText('0 - 0');
+            scene.aGrid.placeAtIndex(22, scene.gameScore);
+            Align.scaleToGameW(scene.game, scene.gameScore, 0.15);
+
             scene.redButton = scene.add.image(0, 0, 'redbutton').setInteractive();;
-            scene.aGrid.placeAtIndex(1, scene.redButton);
+            scene.aGrid.placeAtIndex(-7000, scene.redButton);
             Align.scaleToGameW(scene.game, scene.redButton, 0.3);
             //scene.aGrid.showNumbers();
             scene.exitLobbyButton = scene.add.image(0, 0, 'exit').setInteractive();;
             scene.aGrid.placeAtIndex(0.15, scene.exitLobbyButton);
             Align.scaleToGameW(scene.game, scene.exitLobbyButton, 0.15);
+
+            this.manage
         }
 
         this.buildDropZone = () => {
@@ -318,6 +331,26 @@ export default class UIGameHandler{
             scene.playerName.setText(scene.GameHandler.getPlayerName());
         }
 
+        this.buildAtoutIcons = () => {
+            scene.atoutFR = scene.add.image(0, 0, 'fr_atout');
+            scene.aGrid.placeAtIndex(31, scene.atoutFR);
+            Align.scaleToGameW(scene.game, scene.atoutFR, 0.08);
+
+            scene.atoutAL = scene.add.image(0, 0, 'al_atout');
+            scene.aGrid.placeAtIndex(31, scene.atoutAL);
+            Align.scaleToGameW(scene.game, scene.atoutAL, 0.08);
+
+            scene.atoutAN = scene.add.image(0, 0, 'an_atout');
+            scene.aGrid.placeAtIndex(31, scene.atoutAN);
+            Align.scaleToGameW(scene.game, scene.atoutAN, 0.08);
+
+            scene.atoutRU = scene.add.image(0, 0, 'ru_atout');
+            scene.aGrid.placeAtIndex(31, scene.atoutRU);
+            Align.scaleToGameW(scene.game, scene.atoutRU, 0.08);
+
+           this.manageAtoutIconVisibility();
+        }
+
         this.buildUI = () => {
             this.buildBackground();
             this.buildDropZone();
@@ -326,6 +359,7 @@ export default class UIGameHandler{
             this.buildGameText();
             this.buildChooseTeamsForm();
             this.buildPlaceBetsForm();
+            this.buildAtoutIcons();
         }
     }
 }

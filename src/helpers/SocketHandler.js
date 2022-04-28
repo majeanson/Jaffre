@@ -7,8 +7,7 @@ export default class SocketHandler {
         
         scene.socket.on('refreshCards', (lobby) => {
             if (lobby && lobby !== '') {
-                console.log('zazaza', lobby);
-                scene.GameHandler.refreshCards(lobby, 'normal');
+                scene.GameHandler.refreshCards(lobby);
             }
         })
 
@@ -22,24 +21,20 @@ export default class SocketHandler {
             if (lobby) {
                 scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
                 scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
-                scene.GameHandler.refreshCards(lobby, 'normal');
+                scene.GameHandler.refreshCards(lobby);
             }
         })        
 
         scene.socket.on('cardPlayed', (cardName, index, userName, lobby) => {
-            console.log('card !!! played')
-
             if (lobby) {
                 scene.DeckHandler.cardPlayed(cardName, index);
-                scene.GameHandler.refreshCards(lobby, 'normal');
+                scene.GameHandler.refreshCards(lobby);
             }
             return true;
         })
 
         scene.socket.on('teamSelected', (lobby) => {
-            console.log('teamselected!!!!!!!', lobby.teamChoice);
             if (lobby) {
-                console.log(scene);
                 scene.GameHandler?.toggleShowChooseTeamsForm(lobby);
             }
             return true;
@@ -57,7 +52,6 @@ export default class SocketHandler {
         })
 
         scene.socket.on('joinLobbySelection', (userName, lobby, asObservator) => {
-            console.log('joinLobbySelection', userName, lobby, asObservator);
             if (lobby) {
                 if (typeof scene.joinLobbyNow === 'function' && scene.fb.getUser().displayName == userName) {
                     scene.joinLobbyNow(true, lobby);

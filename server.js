@@ -77,7 +77,7 @@ const getShuffledCards = () => {
 }
 
 const betValue = (bet) => {
-    return bet.split('_')[0];
+    return parseInt(bet.split('_')[0]);
 }
 
 const betIsSa = (bet) => {
@@ -100,12 +100,18 @@ const isEndOfRound = (lobby) => {
 
 const cardPlayed = (lobby, userName, cardName) => {
     if (canPlayCard(lobby, userName, cardName)) {
+        const lobbyIdx = getLobbyIndexByName(lobby.name);
         if (isFirstCardPlayedOfRound(lobby)) {
             atout = getCardColor(cardName);
+            const highest = findHighestFoundBet(lobbys[lobbyIdx]);
+            if (betIsSa(highest)) {
+                atout = '';
+            }
+            lobbys[lobbyIdx].atout = atout;
         }
         const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
         const player = getPlayerByDisplayName(lobby, userName);
-        const lobbyIdx = getLobbyIndexByName(lobby.name);
+        
         lobbys[lobbyIdx].players[playerIndex]['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
         lobbys[lobbyIdx].players[playerIndex]['isMyTurn'] = false;
         let nextPlayerIndex = playerIndex + 1;
@@ -221,67 +227,87 @@ const dealCards = (userName, lobbyIdx) => {
     lobbys[lobbyIdx].deadZone = [];
 }
 
-const getDeckHolderIdx = (lobby) => {
-    lobby.players.findIndex(player => player.isDeckHolder);
+const getDeckHolderIdx = (lobbyIdx) => {
+    return lobbys[lobbyIdx].players.findIndex(player => player.isDeckHolder);
+}
+
+const getIsMyTurnPlayerIdx = (lobbyIdx) => {
+    return lobbys[lobbyIdx].players.findIndex(player => player.isMyTurn);
 }
 
 const endTheTrick = (lobby) => {
     const lobbyIdx = getLobbyIndexByName(lobby.name);
-    findTheWinningCardAndAddPoints(lobbys[lobbyIdx])
+    const winningPlayerIdx = findTheWinningCardAndAddPoints(lobbys[lobbyIdx]);
     lobbys[lobbyIdx].deadZone.push(...lobbys[lobbyIdx].currentDropZone);
     lobbys[lobbyIdx].currentDropZone = [];
-    
-    const deckHolderIdx = getDeckHolderIdx(lobby);
-    let nextDeckHolderIndex = deckHolderIdx + 1;
-    if (nextDeckHolderIndex === 4) {
-        nextDeckHolderIndex = 0;
-    }
-    lobbys[lobbyIdx].players[deckHolderIdx]['isDeckHolder'] = false;
-    lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
-    lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
-    lobbys[lobbyIdx].players[2]['isMyTurn'] = false;
-    lobbys[lobbyIdx].players[3]['isMyTurn'] = false;
+    if (lobbys[lobbyIdx].deadZone.length == 32) {
 
-    lobbys[lobbyIdx].players[nextDeckHolderIndex]['isDeckHolder'] = true;
-    lobbys[lobbyIdx].players[nextDeckHolderIndex]['isMyTurn'] = true;
-    let nextPlayerToPlayIndex = nextDeckHolderIndex + 1;
-    if (nextPlayerToPlayIndex === 4) {
-        nextPlayerToPlayIndex = 0;
-    }
-    const highestBetPlayerIdx = getHighestBetPlayerIdx(lobbys[lobbyIdx]);
-    
-    const abetValue = findHighestFoundBet(lobbys[lobbyIdx]).split('_')[0];
-    const abetSA = findHighestFoundBet(lobbys[lobbyIdx]).split('_')[1];
-    let pointsToPotentiallyWin = abetValue;
-    if (abetSA) {
-        pointsToPotentiallyWin = pointsToPotentiallyWin * 2;
-    }
-    if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints >= pointsToPotentiallyWin) {
-        lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score + pointsToPotentiallyWin;
-    } else if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints < pointsToPotentiallyWin) {
-        lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score - pointsToPotentiallyWin;
-    }
-    if (highestBetPlayerIdx == 0 || highestBetPlayerIdx == 2) {
-        let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
-        if (defenderTrickPoints > 0) {
-            lobbys[lobbyIdx].players[1].score = lobbys[lobbyIdx].players[1].score + defenderTrickPoints;
+        const deckHolderIdx = getDeckHolderIdx(lobbyIdx);
+        let nextDeckHolderIndex = deckHolderIdx + 1;
+        if (nextDeckHolderIndex === 4) {
+            nextDeckHolderIndex = 0;
         }
-    } else if (highestBetPlayerIdx == 1 || highestBetPlayerIdx == 3) {
-        let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
-        if (defenderTrickPoints > 0) {
-            lobbys[lobbyIdx].players[0].score = lobbys[lobbyIdx].players[0].score + defenderTrickPoints;
+        lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
+        lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
+        lobbys[lobbyIdx].players[2]['isMyTurn'] = false;
+        lobbys[lobbyIdx].players[3]['isMyTurn'] = false;
+        lobbys[lobbyIdx].players[0]['isDeckHolder'] = false;
+        lobbys[lobbyIdx].players[1]['isDeckHolder'] = false;
+        lobbys[lobbyIdx].players[2]['isDeckHolder'] = false;
+        lobbys[lobbyIdx].players[3]['isDeckHolder'] = false;
+
+        lobbys[lobbyIdx].players[nextDeckHolderIndex]['isDeckHolder'] = true;
+        lobbys[lobbyIdx].players[nextDeckHolderIndex]['isMyTurn'] = true;
+        let nextPlayerToPlayIndex = nextDeckHolderIndex + 1;
+        if (nextPlayerToPlayIndex === 4) {
+            nextPlayerToPlayIndex = 0;
         }
+        const highestBetPlayerIdx = getHighestBetPlayerIdx(lobbys[lobbyIdx]);
+        const highestFoundBet = findHighestFoundBet(lobbys[lobbyIdx]);
+        
+        const abetValue = betValue(highestFoundBet);
+        const abetSA = betIsSa(highestFoundBet)
+        let pointsToPotentiallyWin = abetValue;
+        if (abetSA) {
+            pointsToPotentiallyWin = pointsToPotentiallyWin * 2;
+        }
+        if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints >= pointsToPotentiallyWin) {
+            lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score + pointsToPotentiallyWin;
+        } else if (lobbys[lobbyIdx].players[highestBetPlayerIdx].trickPoints < pointsToPotentiallyWin) {
+            lobbys[lobbyIdx].players[highestBetPlayerIdx].score = lobbys[lobbyIdx].players[highestBetPlayerIdx].score - pointsToPotentiallyWin;
+        }
+        if (highestBetPlayerIdx == 0 || highestBetPlayerIdx == 2) {
+            let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
+            if (defenderTrickPoints > 0) {
+                lobbys[lobbyIdx].players[1].score = lobbys[lobbyIdx].players[1].score + defenderTrickPoints;
+            }
+        } else if (highestBetPlayerIdx == 1 || highestBetPlayerIdx == 3) {
+            let defenderTrickPoints = lobbys[lobbyIdx].players[1].trickPoints + lobbys[lobbyIdx].players[3].trickPoints;
+            if (defenderTrickPoints > 0) {
+                lobbys[lobbyIdx].players[0].score = lobbys[lobbyIdx].players[0].score + defenderTrickPoints;
+            }
+        }
+        lobbys[lobbyIdx].players[0]['trickPoints'] = 0;
+        lobbys[lobbyIdx].players[1]['trickPoints'] = 0;
+        lobbys[lobbyIdx].players[2]['trickPoints'] = 0;
+        lobbys[lobbyIdx].players[3]['trickPoints'] = 0;
+        dealCards(lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName, lobbyIdx);
+        changeGameState('gameStarted', 'Nouvelle manche. \u00C0 ' + lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName + ' de jouer', lobbys[lobbyIdx]);
+        
+    } else {
+        changeGameState(lobby.gameState, "C'est au joueur " + lobbys[lobbyIdx].players[winningPlayerIdx].displayName + " de jouer", lobbys[lobbyIdx]);
     }
-    changeGameState('gameStarted', 'Nouvelle manche. \u00C0 ' + lobbys[lobbyIdx].players[nextPlayerToPlayIndex].displayName + ' de jouer');
 }
 
 const getHighestBetPlayerIdx = (lobby) => {
     const highest = findHighestFoundBet(lobby);
-    console.log('higheest bet is ', highest, 'by player idx ', lobby.players.findIndex(player => player.bet == highest))
     return lobby.players.findIndex(player => player.bet == highest);
 }
 
 const isWinningOverAllAtouts = (lobby, atoutCard) => {
+    if (lobby.atout = '') {
+        return false;
+    }
     let result = true;
     lobby.currentDropZone.forEach(card => {
         if (cardIsAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
@@ -344,8 +370,7 @@ const findTheWinningCardAndAddPoints = (lobby) => {
        
         const cardValue = getCardValue(card);
         const realPlayerIndex = getPlayerIndexFromCardOrder(lobby, idx);
-        console.log('La carte idx# ', idx, ' a ete joue par le joueur ', realPlayerIndex + 1);
-        if (cardIsAtout(card) && isWinningOverAllAtouts(card)) {
+        if (cardIsAtout(card) && isWinningOverAllAtouts(lobby, card)) {
             highestAtoutValue = cardValue;
             if (highestAtoutValue > highestTrickValue) {
                 highestTrickValue = highestAtoutValue;
@@ -359,13 +384,18 @@ const findTheWinningCardAndAddPoints = (lobby) => {
         }
     });
     let pointsToAdd = 1;
-    if (hasBonhommeBrun()) {
+    if (hasBonhommeBrun(lobby)) {
         pointsToAdd = pointsToAdd - 3;
     }
-    if (hasBonhommeRouge()) {
+    if (hasBonhommeRouge(lobby)) {
         pointsToAdd = pointsToAdd + 5;
     }
-    lobbys[lobbyIdx][winningPlayerIndex].trickPoints += pointsToAdd;
+    lobbys[lobbyIdx].players[winningPlayerIndex].trickPoints += pointsToAdd;
+    lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[2]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[3]['isMyTurn'] = false;
+    lobbys[lobbyIdx].players[winningPlayerIndex]['isMyTurn'] = true;
     return winningPlayerIndex;
 }
 
@@ -417,7 +447,6 @@ const findHighestFoundBet = (lobby) => {
     let highestFoundBet = 'pass';
     let highestFoundValue = -1;
     let highestFoundValueIsSA = false;
-    console.log('searching for highest bet', lobby.players);
     lobby.players.forEach(player => {
         let isHighest = false;
         if (player.bet !== 'pass') {
@@ -440,7 +469,6 @@ const findHighestFoundBet = (lobby) => {
                 highestFoundValueIsSA = abetIsSa;
             }
         }
-        console.log(highestFoundBet, highestFoundValue, highestFoundValueIsSA, player.bet);
     });
     return highestFoundBet;
 }
@@ -546,7 +574,6 @@ io.on('connection', function (socket) {
     })
 
     socket.on('cardPlayed', function (lobby, userName, cardName) {
-        console.log('card played YO~~~~~~~~~~~~~~~~~~~~~~~');
         const lobbyIdx = getLobbyIndexByName(lobby.name);
         let result = cardPlayed(lobby, userName, cardName);
         if (result) {
@@ -564,10 +591,8 @@ io.on('connection', function (socket) {
         const lobbyIdx = getLobbyIndexByName(lobby.name);
         const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
         const playerIsReady = lobbys[lobbyIdx].players[playerIndex]['isReady'];
-        console.log('playerIsReady ?? ', playerIsReady);
         lobbys[lobbyIdx].players[playerIndex]['isReady'] = !playerIsReady;
         const readyCnt = readyCount(lobbys[lobbyIdx].players);
-        console.log(lobbys[lobbyIdx].teamChoice);
         const allPlayersCnt = 4;
         if (readyCnt < allPlayersCnt) {
             changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00E8ts', lobbys[lobbyIdx])
@@ -614,7 +639,6 @@ io.on('connection', function (socket) {
         const noMoreEmpties = lobbys[lobbyIdx].players.filter(player => player.bet == 'empty').length == 0;
         if (noMoreEmpties) {
             const highestBetPlayerIdx = getHighestBetPlayerIdx(lobbys[lobbyIdx]);
-            console.log(highestBetPlayerIdx, 'highest bet player is ', lobbys[lobbyIdx].players[highestBetPlayerIdx].displayName, 'with ', lobbys[lobbyIdx].players[highestBetPlayerIdx].bet);
             lobbys[lobbyIdx].players[0]['isMyTurn'] = false;
             lobbys[lobbyIdx].players[1]['isMyTurn'] = false;
             lobbys[lobbyIdx].players[2]['isMyTurn'] = false;

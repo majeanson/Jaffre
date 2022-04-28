@@ -4,6 +4,8 @@ export default class DeckHandler {
     constructor(scene) {
         this.cardObjects = [];
 
+        this.longTweens = [];
+
         this.getPlayerHand = (lobby) => {
             const currentUserName = scene.fb.getUser().displayName;
             const foundPlayerIndex = lobby.players?.findIndex(player => player.displayName == currentUserName);
@@ -15,25 +17,40 @@ export default class DeckHandler {
             
         }
 
-        this.renderCards = (lobby, mode) => {
+        this.renderCards = (lobby) => {
             if (lobby) {
-                this.renderPlayerZoneCards(lobby, mode);
-                this.renderDropZoneCards(lobby, mode);
-                this.renderDeadZoneCards(lobby, mode);
+                this.renderDeadZoneCards(lobby);
+                this.renderPlayerZoneCards(lobby);
+                this.renderDropZoneCards(lobby);
             }
         }
 
-        this.createAndRenderCard = (card, index, mode) => {
+        this.createAndRenderCard = (lobby, card, index) => {
             const foundCard = this.findCard(card);
             if (foundCard) {
-                if (index === 500 && mode === 'endTurn') {
-                    let target = {};
-                    target.x = 2000;
-                    target.y = 600;
-                    scene.physics.moveToObject(foundCard, target, 200);
+                if (index === 500) {
+                    if (lobby.gameState == 'gameStarted' && lobby.deadZone.length !== 0) {
+                        this.longTweens.push(scene.tweens.add({
+                            targets: foundCard,
+                            x: -500,
+                            duration: 20000,
+                            ease: 'Power3'
+                        }));
+                    }
                 } else {
+                    this.longTweens.forEach(aTween => {
+                        if (aTween.targets == foundCard || lobby.deadZone.length == 0) {
+                            aTween.stop();
+                        }
+                    });
                     scene.aGrid.placeAtIndex(index, foundCard);
                     scene.children.bringToTop(foundCard);
+                    scene.tweens.add({
+                        targets: foundCard,
+                        x: foundCard.x,
+                        duration: 1000,
+                        ease: 'Power3'
+                    });
                 }
                 
                 return foundCard;
@@ -41,32 +58,32 @@ export default class DeckHandler {
                 const newCard = new Card(scene, card);
                 const newRenderedCard = newCard.addCardToScene(card, index);
                 this.cardObjects.push(newRenderedCard);
-                scene.physics.world?.enable(newRenderedCard);
+                scene.physics?.world?.enable(newRenderedCard);
                 return newRenderedCard;
             }
            
         }
 
-        this.renderPlayerZoneCards = (lobby, mode) => {
+        this.renderPlayerZoneCards = (lobby) => {
             let initialIndex = 188.5;
             
             this.getPlayerHand(lobby)?.forEach(card => {
-                this.createAndRenderCard(card, initialIndex, mode);
+                this.createAndRenderCard(lobby, card, initialIndex)
                 initialIndex = initialIndex + 1;
             });
         }
 
-        this.renderDropZoneCards = (lobby, mode) => {
-            lobby?.currentDropZone?.forEach((card, index) => {
-                const newCard = this.createAndRenderCard(card, this.getGridIndex(index + 1), mode);
+        this.renderDropZoneCards = (lobby) => {
+            lobby?.currentDropZone?.forEach((card, index) => {;
+                const newCard = this.createAndRenderCard(lobby, card, this.getGridIndex(index + 1));
                 scene.input.setDraggable(newCard, false);
             });          
         }
 
-        this.renderDeadZoneCards = (lobby, mode) => {
+        this.renderDeadZoneCards = (lobby) => {
             let initialIndex = 500; // out of bounds
-            lobby?.deadZoneCards?.forEach(card => {
-                const newCard = this.createAndRenderCard(card, initialIndex, mode);
+            lobby?.deadZone?.forEach(card => {
+                const newCard = this.createAndRenderCard(lobby, card, initialIndex);
                 scene.input.setDraggable(newCard, true);
             });
         }      
@@ -99,7 +116,6 @@ export default class DeckHandler {
             let shouldSkip = false;
             let condition = 'original';
             let arrayToUse = this.getPlayerHand(lobby).slice();
-            console.log('upX', upX, 'downX', downX, condition, arrayToUse, lobby);
             if (downX < upX) {
                 const reverseClone = arrayToUse.reverse();
                 arrayToUse = reverseClone;
@@ -115,19 +131,17 @@ export default class DeckHandler {
                     }
                 }
             });
-            console.log('zzzzzzz!', foundCardIdx);
             return foundCardIdx;
         }
         
         this.cardMovedInHand = (lobby, userName) => {
-            console.log('heee', lobby, userName);
             if (scene.fb.hasSameName(userName)) {
-                scene.GameHandler.refreshCards(lobby, 'normal');
+                scene.GameHandler.refreshCards(lobby);
             }
         }
 
         this.endTurn = (lobby) => {
-            scene.GameHandler.refreshCards(lobby, 'endTurn');
+            scene.GameHandler.refreshCards(lobby);
         }
     }
 }

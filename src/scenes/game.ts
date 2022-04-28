@@ -35,7 +35,6 @@ export default class Game extends BaseScreen {
     }
 
     init(data) {
-        console.log(data);
         this.lobby = data.lobby;
     }
 
