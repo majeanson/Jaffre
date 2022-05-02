@@ -1,0 +1,12 @@
+CHANGELIST
+
+
+o	card placement
+o	atout fix 
+o	displayer fix (all ui) + background vert laitte
+o	voir les bets somehow et pouvoir voir ses cartes.. surement scrapper la form au complet
+-card to deadzone good side based on player win
+-on enter lobby name, select all input for ez delete
+-end of game
+-change name
+-change password

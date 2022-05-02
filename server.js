@@ -21,8 +21,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-//const PORT = process.env.PORT || 80;
-const PORT = process.env.PORT || 51586;
+const PORT = process.env.PORT || 80;
+//const PORT = process.env.PORT || 51586;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
