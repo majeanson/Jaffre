@@ -75,7 +75,10 @@ export default class DeckHandler {
         }
 
         this.renderDropZoneCards = (lobby) => {
-            lobby?.currentDropZone?.forEach((card, index) => {;
+            lobby?.currentDropZone?.forEach((card, index) => {
+                if (card == '') {
+                    return;
+                }
                 const newCard = this.createAndRenderCard(lobby, card, this.getGridIndex(index + 1));
                 scene.input.setDraggable(newCard, false);
             });          

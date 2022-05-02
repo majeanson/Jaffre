@@ -2,12 +2,10 @@ export default class InteractivityHandler {
     constructor(scene) {
 
         scene.input.on('dragstart', (pointer, gameObject) => {
-            gameObject.setTint(0xff69b4);
             scene.children.bringToTop(gameObject);
         })
 
         scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
-            gameObject.setTint();
             this.lastXDrag = dragX;
             gameObject.x = dragX
             gameObject.y = dragY

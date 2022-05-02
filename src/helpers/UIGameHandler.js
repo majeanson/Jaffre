@@ -8,7 +8,6 @@ export default class UIGameHandler{
     constructor(scene) {
 
         this.zoneHandler = new ZoneHandler(scene);
-        const selfToggle = this.toggleShowChooseTeamsForm;
 
         this.buildChooseTeamsForm = () => {
             scene.chooseTeamsForm = scene.add.dom(0, -700).createFromHTML(chooseteamsform);
@@ -33,6 +32,7 @@ export default class UIGameHandler{
             Align.center6(scene.game, scene.placeBetsForm);
             scene.placeBetsForm.setPerspective(800);
             scene.placeBetsForm.addListener('click');
+            let self = this;
             if (scene.lobby) {
                 this.toggleShowPlaceBetsForm(scene.lobby);
             }
@@ -43,7 +43,23 @@ export default class UIGameHandler{
                 } else {
                     event.preventDefault();
                 }
+                self.toggleShowPlaceBetsForm(this.scene.lobby);
             });
+
+            scene.hidePlaceBetsForm = scene.add.image(0, 0, 'hide').setInteractive();
+            scene.aGrid.placeAtIndex(20, scene.hidePlaceBetsForm);
+            Align.scaleToGameW(scene.game, scene.hidePlaceBetsForm, 0.07);
+
+            scene.hidePlaceBetsForm?.on('pointerdown', () => {
+                console.log('pointerdown');
+                scene.placeBetsForm.visible = false;
+            })
+
+            scene.hidePlaceBetsForm?.on('pointerup', () => {
+                console.log('pointerup');
+                scene.placeBetsForm.visible = true;
+            })
+
         }
 
         this.toggleShowPlaceBetsForm  = (lobby) => {
@@ -185,13 +201,14 @@ export default class UIGameHandler{
             }
 
             const highestFoundBet = this.findHighestFoundBet(lobby);
+            console.log('highestFoundBet', highestFoundBet, val);
             let isDisable = false;
-            let shouldSkip = false;
             if (val == 'pass') {
-                isDisable = isLastPlayerToBet && highestFoundBet == 'pass';
-                shouldSkip = true;
+                isDisable = isLastPlayerToBet && highestFoundBet == 'pass' || highestFoundBet == 'empty';
+                document.getElementById(val).disabled = isDisable;
+                return;
             }
-            if (highestFoundBet && !shouldSkip) {
+            if (highestFoundBet) {
                 const betValue = this.getBetValue(val);
                 const betIsSa = this.getIsSA(val);
                 const highestFoundValue = this.getBetValue(highestFoundBet);
@@ -208,7 +225,7 @@ export default class UIGameHandler{
                     }
                 }
                 isDisable = !isHighest;
-            } else if (!shouldSkip) {
+            } else {
                 isDisable = false;
             }
             document.getElementById(val).disabled = isDisable;
@@ -253,48 +270,82 @@ export default class UIGameHandler{
             scene.cameras.main.setBackgroundColor('#ffffff');
             scene.backGround = scene.add.image(0, 0, 'background');
             scene.aGrid.placeAtIndex(82, scene.backGround);
-            Align.scaleToGameW(scene.game, scene.backGround, 1);
+            Align.scaleToGameW(scene.game, scene.backGround, 4);
             scene.children.sendToBack(scene.backgGround);
         }
 
-        this.manageAtoutIconVisibility = () => {
+        this.manageAtoutIconVisibility = (lobby) => {
             if (scene.atoutFR && scene.atoutRU && scene.atoutAL && scene.atoutAN) {
-                scene.atoutFR.visible = scene.lobby?.atout == 'fr';
-                scene.atoutRU.visible = scene.lobby?.atout == 'ru';
-                scene.atoutAL.visible = scene.lobby?.atout == 'al';
-                scene.atoutAN.visible = scene.lobby?.atout == 'an';
+                scene.atoutFR.visible = lobby?.atout == 'fr';
+                scene.atoutRU.visible = lobby?.atout == 'ru';
+                scene.atoutAL.visible = lobby?.atout == 'al';
+                scene.atoutAN.visible = lobby?.atout == 'an';
             }
         }
 
         this.buildScoreZone = () => {
             scene.scoreZone = this.zoneHandler.renderZone(960, 100, 1875, 165);
             scene.scoreBoard = scene.add.image(0, 0, 'score');
+            scene.scoreBoard.visible = false;
             scene.aGrid.placeAtIndex(27, scene.scoreBoard);
-            Align.scaleToGameW(scene.game, scene.scoreBoard, 0.3);
-            scene.score = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0xf2f3f5);
-            scene.score.setText('0 - 0');
-            scene.aGrid.placeAtIndex(15.2, scene.score);
-            Align.scaleToGameW(scene.game, scene.score, 0.15);
 
-            scene.gameTeams = scene.add.text(0, 0, '').setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x005c5b);
-            scene.gameTeams.setText('XX - YY');
-            scene.aGrid.placeAtIndex(11, scene.gameTeams);
-            Align.scaleToGameW(scene.game, scene.gameTeams, 0.15);
+            Align.scaleToGameW(scene.game, scene.scoreBoard, 0.7);
+
+            scene.trickScore = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0x69d6bd);
+            scene.trickScore.setText('0 - 0');
+            scene.aGrid.placeAtIndex(39.35, scene.trickScore);
+            Align.scaleToGameW(scene.game, scene.trickScore, 0.1);
+
+            scene.trickScoreP1P3 = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0x4f743d);
+            scene.trickScoreP1P3.setText('0');
+            scene.aGrid.placeAtIndex(41, scene.trickScoreP1P3);
+            Align.scaleToGameW(scene.game, scene.trickScoreP1P3, 0.03);
+
+            scene.trickScoreP2P4 = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0x544c6b);
+            scene.trickScoreP2P4.setText('0');
+            scene.aGrid.placeAtIndex(42.5, scene.trickScoreP2P4);
+            Align.scaleToGameW(scene.game, scene.trickScoreP2P4, 0.03);
+
+            scene.gameScore = scene.add.text(0, 0, '').setFontSize(100).setFontFamily("Trebuchet MS").setTint(0x69d6bd);
+            scene.gameScore.setText('0 - 0');
+            scene.aGrid.placeAtIndex(28, scene.gameScore);
+            Align.scaleToGameW(scene.game, scene.gameScore, 0.1);
+
+            scene.scoreP1P3 = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0x4f743d);
+            scene.scoreP1P3.setText('0');
+            scene.aGrid.placeAtIndex(30, scene.scoreP1P3);
+            Align.scaleToGameW(scene.game, scene.scoreP1P3, 0.03);
+
+            scene.scoreP2P4 = scene.add.text(0, 0, '').setFontSize(180).setFontFamily("Trebuchet MS").setTint(0x544c6b);
+            scene.scoreP2P4.setText('0');
+            scene.aGrid.placeAtIndex(31.5, scene.scoreP2P4);
+            Align.scaleToGameW(scene.game, scene.scoreP2P4, 0.03);
+
+            scene.gameTeamsTop = scene.add.text(0, 0, '').setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x4f743d);
+            scene.gameTeamsTop.setText('Lmno');
+            scene.aGrid.placeAtIndex(12, scene.gameTeamsTop);
+            Align.scaleToGameW(scene.game, scene.gameTeamsTop, 0.12);
+
+            scene.gameTeams = scene.add.text(0, 0, '').setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x544c6b);
+            scene.gameTeams.setText('AbCd - DeFg');
+            scene.aGrid.placeAtIndex(22.4, scene.gameTeams);
+            Align.scaleToGameW(scene.game, scene.gameTeams, 0.27);
+
+            scene.gameTeamsBot = scene.add.text(0, 0, '').setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x4f743d);
+            scene.gameTeamsBot.setText('HiJk');
+            scene.aGrid.placeAtIndex(34, scene.gameTeamsBot);
+            Align.scaleToGameW(scene.game, scene.gameTeamsBot, 0.1);
 
             scene.bet = scene.add.text(0, 0, '').setFontSize(120).setFontFamily("Trebuchet MS").setTint(0x005c5b);
-            scene.bet.setText('bet : ');
-            scene.aGrid.placeAtIndex(33, scene.bet);
-            Align.scaleToGameW(scene.game, scene.bet, 0.2);
-
-            scene.gameScore = scene.add.text(0, 0, '').setFontSize(100).setFontFamily("Trebuchet MS").setTint(0x241446);
-            scene.gameScore.setText('0 - 0');
-            scene.aGrid.placeAtIndex(22, scene.gameScore);
-            Align.scaleToGameW(scene.game, scene.gameScore, 0.15);
+            scene.bet.setText('pass');
+            scene.aGrid.placeAtIndex(19.5, scene.bet);
+            Align.scaleToGameW(scene.game, scene.bet, 0.1);
+            Align.centerH(scene.game, scene.bet);
 
             scene.redButton = scene.add.image(0, 0, 'redbutton').setInteractive();;
             scene.aGrid.placeAtIndex(-7000, scene.redButton);
             Align.scaleToGameW(scene.game, scene.redButton, 0.3);
-            //scene.aGrid.showNumbers();
+           // scene.aGrid.showNumbers();
             scene.exitLobbyButton = scene.add.image(0, 0, 'exit').setInteractive();;
             scene.aGrid.placeAtIndex(0.15, scene.exitLobbyButton);
             Align.scaleToGameW(scene.game, scene.exitLobbyButton, 0.15);
@@ -303,19 +354,19 @@ export default class UIGameHandler{
         }
 
         this.buildDropZone = () => {
-            scene.dropZone = this.zoneHandler.renderZone(-100, 275, 4650, 285);
+            scene.dropZone = this.zoneHandler.renderZone(-100, 253, 4650, 285);
             scene.dropZoneOutline = this.zoneHandler.renderOutline(scene.add.graphics(), scene.dropZone, 0x526169);
         }
 
         this.buildPlayerCardZone = () => {
             scene.playerCardZone = this.zoneHandler.renderZone(-100, 675, 4650, 500);
-            scene.playerCardZoneOutline = this.zoneHandler.renderOutline(scene.add.graphics(), scene.playerCardZone, 0x523449);
+            //scene.playerCardZoneOutline = this.zoneHandler.renderOutline(scene.add.graphics(), scene.playerCardZone, 0x523449);
             this.buildPlayerCardText();
         }
 
         this.buildGameText = () => {
             scene.backCard = scene.add.image(0, 0, 'hugeback').setInteractive();
-            scene.aGrid.placeAtIndex(99, scene.backCard);
+            scene.aGrid.placeAtIndex(121, scene.backCard);
             Align.scaleToGameW(scene.game, scene.backCard, 0.5);
             Align.centerW(scene.game, scene.backCard);
             scene.messageStatus = scene.add.text(0, 0, "Message status").setFontSize(50).setFontFamily("Trebuchet MS").setTint(0x000000);
@@ -334,19 +385,19 @@ export default class UIGameHandler{
 
         this.buildAtoutIcons = () => {
             scene.atoutFR = scene.add.image(0, 0, 'fr_atout');
-            scene.aGrid.placeAtIndex(31, scene.atoutFR);
+            scene.aGrid.placeAtIndex(20.5, scene.atoutFR);
             Align.scaleToGameW(scene.game, scene.atoutFR, 0.08);
 
             scene.atoutAL = scene.add.image(0, 0, 'al_atout');
-            scene.aGrid.placeAtIndex(31, scene.atoutAL);
+            scene.aGrid.placeAtIndex(20.5, scene.atoutAL);
             Align.scaleToGameW(scene.game, scene.atoutAL, 0.08);
 
             scene.atoutAN = scene.add.image(0, 0, 'an_atout');
-            scene.aGrid.placeAtIndex(31, scene.atoutAN);
+            scene.aGrid.placeAtIndex(20.5, scene.atoutAN);
             Align.scaleToGameW(scene.game, scene.atoutAN, 0.08);
 
             scene.atoutRU = scene.add.image(0, 0, 'ru_atout');
-            scene.aGrid.placeAtIndex(31, scene.atoutRU);
+            scene.aGrid.placeAtIndex(20.5, scene.atoutRU);
             Align.scaleToGameW(scene.game, scene.atoutRU, 0.08);
 
            this.manageAtoutIconVisibility();

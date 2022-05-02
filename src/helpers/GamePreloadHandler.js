@@ -39,6 +39,7 @@ import background from '../assets/icons/background.png';
 import score from '../assets/icons/score.png';
 import redbutton from '../assets/icons/redbutton.png';
 import exit from '../assets/icons/exit.png';
+import hide from '../assets/icons/hide.png';
 import chooseteamsform from '../assets/forms/chooseteamsform.html';
 import placebetsform from '../assets/forms/placebetsform.html';
 
@@ -91,6 +92,7 @@ export default class GamePreloadHandler {
             scene.load.image('score', score);
             scene.load.image('redbutton', redbutton);
             scene.load.image('exit', exit);
+            scene.load.image('hide', hide);
             scene.load.image('al_atout', al_atout);
             scene.load.image('ru_atout', ru_atout);
             scene.load.image('fr_atout', fr_atout);

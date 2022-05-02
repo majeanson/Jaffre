@@ -44,30 +44,51 @@ export default class GameHandler {
         }
 
         this.getGameScoreText = () => {
-            return this.getPlayer1AndPlayer3Score() + ' - ' + this.getPlayer2AndPlayer4Score();
+            return 'Partie :        -';
+        }
+
+        this.getTrickScoreText = () => {
+            return 'Main :        -';
         }
 
         this.getGameTeamsText = () => {
-            return this.getPlayer1AndPlayer3Team() + ' - ' + this.getPlayer2AndPlayer4Team();
+            return this.getPlayerShortNameByIndex(3) + ' - ' + this.getPlayerShortNameByIndex(1);
+        }
+
+        this.getGameTeamsTextBot = () => {
+            return this.getPlayerShortNameByIndex(0);
+        }
+
+        this.getGameTeamsTextTop = () => {
+            return this.getPlayerShortNameByIndex(2);
         }
 
         this.getBetText = () => {
-            return 'bet : ' + scene.UIGameHandler?.findHighestFoundBet(scene.lobby);
+            const highest = scene.UIGameHandler?.findHighestFoundBet(scene.lobby);
+            return highest == pass ? '' : highest;
         }
 
-        this.getPlayer1AndPlayer3Team = () => {
+        this.getPlayerShortNameByIndex = (index) => {
+            if (!scene.lobby?.players || !scene.lobby?.players[index]) {
+                return '';
+            }
+            return scene.lobby?.players[index]?.displayName.substring(0, 4);
+        }
+
+        this.getPlayer1AndPlayer3GameScore = () => {
             if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
-                return '';
+                return '0';
             }
-            return scene.lobby?.players[0]?.displayName.substring(0, 2) + scene.lobby?.players[2]?.displayName.substring(0, 2)
+            return parseInt(scene.lobby?.players[0]?.score) + parseInt(scene.lobby?.players[2]?.score);
         }
 
-        this.getPlayer2AndPlayer4Team = () => {
+        this.getPlayer2AndPlayer4GameScore = () => {
             if (!scene.lobby?.players || !scene.lobby?.players[1] || !scene.lobby?.players[3]) {
-                return '';
+                return '0';
             }
-            return scene.lobby?.players[1].displayName.substring(0, 2) + scene.lobby?.players[3].displayName.substring(0, 2);
+            return parseInt(scene.lobby?.players[1]?.score) + parseInt(scene.lobby?.players[3]?.score);
         }
+
 
         this.getPlayer1AndPlayer3TrickScore = () => {
             if (!scene.lobby?.players || !scene.lobby?.players[0] || !scene.lobby?.players[2]) {
@@ -100,8 +121,15 @@ export default class GameHandler {
         this.refreshTexts = (lobby) => {
             scene.playerName?.setText(this.getPlayerName());
             scene.score?.setText(this.getGameTrickScoreText());
+            scene.trickScore?.setText(this.getTrickScoreText());
+            scene.trickScoreP1P3?.setText(this.getPlayer1AndPlayer3TrickScore());
+            scene.trickScoreP2P4?.setText(this.getPlayer2AndPlayer4TrickScore());
             scene.gameScore?.setText(this.getGameScoreText());
+            scene.scoreP1P3?.setText(this.getPlayer1AndPlayer3GameScore());
+            scene.scoreP2P4?.setText(this.getPlayer2AndPlayer4GameScore());
             scene.gameTeams?.setText(this.getGameTeamsText());
+            scene.gameTeamsBot?.setText(this.getGameTeamsTextBot());
+            scene.gameTeamsTop?.setText(this.getGameTeamsTextTop());
             scene.bet?.setText(this.getBetText());
             scene.messageStatus?.setText(lobby.gameStateMessage);
         }
@@ -121,8 +149,10 @@ export default class GameHandler {
         }
 
         this.refreshCards = (lobby) => {
+            
             const previousState = scene.lobby?.gameState;
             scene.lobby = lobby;
+            console.log(scene.lobby);
             scene.DeckHandler.renderCards(lobby);
             this.refreshTexts(lobby);
             this.refreshBackCard(lobby);
@@ -133,6 +163,9 @@ export default class GameHandler {
             if (lobby.gameState == 'placeBets' && previousState !== lobby.gameState) {
                 scene.placeBetsForm = null;
                 scene.UIGameHandler?.buildPlaceBetsForm();
+            }
+            if (scene.hidePlaceBetsForm) {
+                scene.hidePlaceBetsForm.visible = lobby.gameState == 'placeBets';
             }
             scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
             scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
