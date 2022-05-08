@@ -4,11 +4,11 @@
     <style>
         @import url(https://fonts.googleapis.com/css?family=Roboto:400,300,500,700);
 
-        #placebetsform ::selection {
+        #placebetsformdivdiv ::selection {
             background: none;
         }
 
-        #placebetsform body {
+        #placebetsformdiv body {
             background: #f1f2f1;
             font-family: 'Roboto';
             font-weight: 500;
@@ -18,7 +18,7 @@
             height: 100%;
         }
 
-        #placebetsform h1 {
+        #placebetsformdiv h1 {
             font-weight: 100;
             text-align: center;
             margin: 0;
@@ -26,7 +26,7 @@
             font-size: 50px;
         }
 
-        #placebetsform h4 {
+        #placebetsformdiv h4 {
             font-weight: 400;
             text-align: center;
             margin: 0;
@@ -34,7 +34,7 @@
             margin-bottom: 50px;
         }
 
-        #placebetsform .continput {
+        #placebetsformdiv .continput {
             position: absolute;
             top: 0;
             left: 0;
@@ -47,7 +47,7 @@
             box-sizing: border-box;
         }
 
-        #placebetsform ul {
+        #placebetsformdiv ul {
             list-style-type: none;
             width: 250px;
             margin: auto;
@@ -55,7 +55,7 @@
             left: -10px;
         }
 
-        #placebetsform li {
+        #placebetsformdiv li {
             position: relative;
             padding: 5px;
             padding-left: 20px;
@@ -63,7 +63,7 @@
             text-align: center;
         }
 
-        #placebetsform label:before {
+        #placebetsformdiv label:before {
             content: "";
             width: 15px;
             height: 15px;
@@ -75,7 +75,7 @@
             border-radius: 50%;
         }
 
-        #placebetsform input[type="radio"] {
+        #placebetsformdiv input[type="radio"] {
             opacity: 0;
             -webkit-appearance: none;
             display: inline-block;
@@ -91,7 +91,7 @@
             cursor: pointer;
         }
 
-        #placebetsform .bullet {
+        #placebetsformdiv .bullet {
             position: relative;
             width: 25px;
             height: 25px;
@@ -102,14 +102,14 @@
             border-radius: 50%;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet {
             position: absolute;
             opacity: 1;
             animation-name: explode;
             animation-duration: 0.350s;
         }
 
-        #placebetsform .line {
+        #placebetsformdiv .line {
             position: absolute;
             width: 10px;
             height: 2px;
@@ -169,56 +169,56 @@
                 height: 10px;
             }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.zero {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.zero {
             animation-name: drop-zero;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.one {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.one {
             animation-name: drop-one;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.two {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.two {
             animation-name: drop-two;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.three {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.three {
             animation-name: drop-three;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.four {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.four {
             animation-name: drop-four;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.five {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.five {
             animation-name: drop-five;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.six {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.six {
             animation-name: drop-six;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
             animation-fill-mode: forwards;
         }
 
-        #placebetsform input[type="radio"]:checked ~ .bullet .line.seven {
+        #placebetsformdiv input[type="radio"]:checked ~ .bullet .line.seven {
             animation-name: drop-seven;
             animation-delay: 0.100s;
             animation-duration: 0.9s;
@@ -386,7 +386,7 @@
             }
         }
 
-        #placebetsform .toggle {
+        #placebetsformdiv .toggle {
             --width: 130px;
             --height: calc(var(--width) / 4);
             position: relative;
@@ -476,7 +476,7 @@
     </style>
 </head>
 <body>
-    <div id="placebetsform" class="continput">
+    <div id="placebetsformdiv" class="continput">
         <ul style="background-color:#C9C9C9;">
             <li>
                 <input type="radio" id="pass" name="pass" value="pass">

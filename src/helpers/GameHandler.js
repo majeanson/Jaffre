@@ -150,11 +150,9 @@ export default class GameHandler {
             scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
         }
 
-        this.refreshCards = (lobby) => {
-            
+        this.refreshCards = (lobby) => {           
             const previousState = scene.lobby?.gameState;
             scene.lobby = lobby;
-            console.log(scene.lobby);
             scene.DeckHandler.renderCards(lobby);
             this.refreshTexts(lobby);
             this.refreshBackCard(lobby);

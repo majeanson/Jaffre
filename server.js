@@ -21,8 +21,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-//const PORT = process.env.PORT || 80;
-const PORT = process.env.PORT || 51586;
+const PORT = process.env.PORT || 80;
+//const PORT = process.env.PORT || 51586;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
@@ -31,7 +31,9 @@ const server = app.listen(PORT, () => {
 const devEnv = process.env.NODE_ENV !== "production";
 const io = require('socket.io')(server, {
     cors: {
-        origin: devEnv ? 'http://192.168.2.47:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
+        // origin: devEnv ? 'http://192.168.2.47:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
+         origin: devEnv ? 'http://192.168.2.12:51586' : ['https://jaffre.herokuapp.com', 'http://localhost:80'],
+        
         methods: ["GET", "POST"],
     }
 });
@@ -102,7 +104,7 @@ const isFirstCardPlayedOfTrick = (lobbyIdx) => {
 }
 
 const isEndOfRound = (lobby) => {
-    return lobby.deadZone.length === 32;
+    return lobby.deadZone.flat().length === 32;
 }
 
 const cardPlayed = (lobby, userName, cardName) => {
@@ -254,7 +256,7 @@ const dealCards = (userName, lobbyIdx) => {
         lobbys[lobbyIdx].players[playerIdx]['isDeckHolder'] = true;
         lobbys[lobbyIdx].players[playerIdx]['isMyTurn'] = true;
     }
-    lobbys[lobbyIdx].deadZone = [];
+    lobbys[lobbyIdx].deadZone = [[], [], [], []];
 }
 
 const getDeckHolderIdx = (lobbyIdx) => {
@@ -268,14 +270,14 @@ const getIsMyTurnPlayerIdx = (lobbyIdx) => {
 const endTheTrick = (lobby) => {
     const lobbyIdx = getLobbyIndexByName(lobby.name);
     const winningPlayerIdx = findTheWinningCardAndAddPoints(lobbys[lobbyIdx]);
-    lobbys[lobbyIdx].deadZone.push(...lobbys[lobbyIdx].currentDropZone);
+    lobbys[lobbyIdx].deadZone[winningPlayerIdx].push(...lobbys[lobbyIdx].currentDropZone);
     lobbys[lobbyIdx].currentDropZone = [
         '',
         '',
         '',
         '',
     ];
-    if (lobbys[lobbyIdx].deadZone.length == 32) {
+    if (lobbys[lobbyIdx].deadZone.flat().length == 32) {
 
         const deckHolderIdx = getDeckHolderIdx(lobbyIdx);
         let nextDeckHolderIndex = deckHolderIdx + 1;
@@ -535,7 +537,7 @@ const joinLobby = (userName, lobbyName, asObservator) => {
                 '',
                 ''
             ],
-            deadZone: fullDeadZone.slice(),
+            deadZone: [[fullDeadZone.slice()], [], [], []],
             atout: '',
         };
         for (let i = 0; i < 4; i++) {
@@ -712,6 +714,7 @@ io.on('connection', function (socket) {
         lobbys[lobbyIdx].players[3]['inHand'] = [];
         lobbys[lobbyIdx].currentDropZone = ['al_1', 'al_2', 'al_3', 'al_4'];
         lobbys[lobbyIdx].deadZone = [
+            [
             'al_0',
             'al_1',
             'al_2',
@@ -743,7 +746,10 @@ io.on('connection', function (socket) {
             'ru_4',
             'ru_5',
             'ru_6',
-            'ru_7'
+            'ru_7'],
+            [],
+            [],
+            [],
         ];
 
         io.emit('endTheTrick', lobbys[lobbyIdx], 3, true);

@@ -2,7 +2,7 @@ import ZoneHandler from './ZoneHandler';
 import Align from '../../utils/align.js';
 import chooseteamsform from '../assets/forms/chooseteamsform.html';
 import placebetsform from '../assets/forms/placebetsform.html';
-
+import $ from "jquery";
 
 export default class UIGameHandler{
     constructor(scene) {
@@ -118,6 +118,7 @@ export default class UIGameHandler{
 
         this.checkboxIsChecked = (lobby, bet, val) => {
             const labelId = val + 'Label';
+            
             let playersWithThisBet = [];
             lobby.players.forEach(player => {
                 if (player.bet == val) {
@@ -126,7 +127,6 @@ export default class UIGameHandler{
                     }
                 }
             });
-
             let result = '';
             let betValue = this.getBetValue(val);
             if (betValue == -1) {
@@ -135,9 +135,10 @@ export default class UIGameHandler{
                 const sa = this.getIsSA(val) ? ' Sans atout' : '';
                 result = betValue + sa;
             }
-            if (playersWithThisBet.length > 0) {
-                document.getElementById(labelId).innerHTML = result + ' (' + playersWithThisBet.join(', ') + ')';
+            if (playersWithThisBet.length > 0) {   
+                document.getElementById(val + 'Label').innerHTML = result + ' (' + playersWithThisBet.join(', ') + ')';
             } 
+           
         }
 
         this.getBetValue = (value) => {

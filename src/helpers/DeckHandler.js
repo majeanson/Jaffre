@@ -28,7 +28,7 @@ export default class DeckHandler {
         this.createAndRenderCard = (lobby, card, index, direction) => {
             const foundCard = this.findCard(card);
             if (foundCard) {
-                if (index === 999) {
+                if (index === 999 || lobby.gameState == 'placeBets') {
                     if (lobby.gameState == 'gameStarted' || lobby.gameState == 'placeBets') {
                         switch (direction) {
                             case 'top':
@@ -69,7 +69,7 @@ export default class DeckHandler {
                     }
                 } else {
                     this.longTweens.forEach(aTween => {
-                        if (aTween.targets == foundCard || lobby.deadZone.length == 0 || lobby.gameState == 'placeBets') {
+                        if (aTween.targets == foundCard || lobby.deadZone.flat().length == 0 || lobby.gameState == 'placeBets') {
                             aTween.stop();
                         }
                     });
@@ -114,19 +114,22 @@ export default class DeckHandler {
         }
 
         this.renderDeadZoneCards = (lobby) => {
-            
             const getWinningPlayerIdx = scene.UIGameHandler?.findPlayerTurn(scene.lobby);
             let direction = ''
             const initialIndex = 999;
-            switch (getWinningPlayerIdx) {
-                case 0: direction = 'bot'; break;
-                case 1: direction = 'right'; break;
-                case 2: direction = 'top'; break;
-                case 3: direction = 'left'; break;
-            }
-            lobby?.deadZone?.forEach(card => {
-                const newCard = this.createAndRenderCard(lobby, card, initialIndex, direction);
-                scene.input.setDraggable(newCard, true);
+
+            lobby?.deadZone?.forEach((playerCards, idx) => {
+                playerCards.forEach(card => {
+                    switch (idx) {
+                        case 0: direction = 'bot'; break;
+                        case 1: direction = 'right'; break;
+                        case 2: direction = 'top'; break;
+                        case 3: direction = 'left'; break;
+                    }
+                    const newCard = this.createAndRenderCard(lobby, card, initialIndex, direction);
+                    scene.input.setDraggable(newCard, true);
+                })
+                
             });
         }      
 

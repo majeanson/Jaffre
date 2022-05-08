@@ -16,7 +16,7 @@ export default class Game extends BaseScreen {
     public ZoneHandler: ZoneHandler;
     public InteractivityHandler: InteractivityHandler;
     public UIGameHandler: UIGameHandler;
-    public lobby: string;
+    public lobby;
 
     preloadIcons = () => {     
         this.GamePreloadHandler.preloadIcons();

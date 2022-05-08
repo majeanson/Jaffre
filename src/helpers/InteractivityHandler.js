@@ -8,7 +8,6 @@ export default class InteractivityHandler {
         })
 
         scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
-            console.log(pointer.x, dragX, gameObject.x);
             gameObject.x = dragX;
             gameObject.y = dragY;
         })
