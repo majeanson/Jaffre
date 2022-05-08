@@ -51,12 +51,10 @@ export default class UIGameHandler{
             Align.scaleToGameW(scene.game, scene.hidePlaceBetsForm, 0.07);
 
             scene.hidePlaceBetsForm?.on('pointerdown', () => {
-                console.log('pointerdown');
                 scene.placeBetsForm.visible = false;
             })
 
             scene.hidePlaceBetsForm?.on('pointerup', () => {
-                console.log('pointerup');
                 scene.placeBetsForm.visible = true;
             })
 
@@ -162,6 +160,10 @@ export default class UIGameHandler{
             }
         }
 
+        this.findPlayerTurn = (lobby) => {
+            return lobby.players.findIndex(player => player.isMyTurn);
+        }
+
         this.findHighestFoundBet = (lobby) => {
             let highestFoundBet = 'pass';
             let highestFoundValue = -1;
@@ -199,9 +201,7 @@ export default class UIGameHandler{
             if (scene.fb.getUser().displayName !== playerNameTurn) {
                 return true;
             }
-
             const highestFoundBet = this.findHighestFoundBet(lobby);
-            console.log('highestFoundBet', highestFoundBet, val);
             let isDisable = false;
             if (val == 'pass') {
                 isDisable = isLastPlayerToBet && highestFoundBet == 'pass' || highestFoundBet == 'empty';

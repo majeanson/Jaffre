@@ -35,10 +35,6 @@ export default class GameHandler {
             scene.playerName?.setText(scene.GameHandler.getPlayerName());
         }
 
-        this.emitChangeState = (gameState, message, lobby) => {
-            scene.socket.emit('emitChangeGameState', gameState, message, lobby);
-        }
-
         this.getGameTrickScoreText = () => {
             return this.getPlayer1AndPlayer3TrickScore() + ' - ' + this.getPlayer2AndPlayer4TrickScore();
         }
@@ -65,6 +61,12 @@ export default class GameHandler {
 
         this.getBetText = () => {
             const highest = scene.UIGameHandler?.findHighestFoundBet(scene.lobby);
+            const getHighestBetPlayerIdx = scene.lobby.players.findIndex(player => player.bet == highest);
+            if (getHighestBetPlayerIdx == 0 || getHighestBetPlayerIdx == 2) {
+                scene.bet.setTint(0x4f743d);
+            } else {
+                scene.bet.setTint(0x544c6b);
+            }
             return highest == pass ? '' : highest;
         }
 
@@ -169,7 +171,6 @@ export default class GameHandler {
             }
             scene.UIGameHandler?.toggleShowChooseTeamsForm(lobby);
             scene.UIGameHandler?.toggleShowPlaceBetsForm(lobby);
-            console.log(lobby);
         }
 
         this.getCurrentPlayer = () => {

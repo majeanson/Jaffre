@@ -1,14 +1,16 @@
 export default class InteractivityHandler {
     constructor(scene) {
 
-        scene.input.on('dragstart', (pointer, gameObject) => {
+        scene.input.on('dragstart', (pointer, gameObject, dragX, dragY) => {
+            gameObject.x = pointer.x;
+            gameObject.y = pointer.y;
             scene.children.bringToTop(gameObject);
         })
 
         scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
-            this.lastXDrag = dragX;
-            gameObject.x = dragX
-            gameObject.y = dragY
+            console.log(pointer.x, dragX, gameObject.x);
+            gameObject.x = dragX;
+            gameObject.y = dragY;
         })
 
         scene.input.on('dragenter', function (pointer, gameObject, dropZone) {

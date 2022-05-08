@@ -21,8 +21,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-const PORT = process.env.PORT || 80;
-//const PORT = process.env.PORT || 51586;
+//const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 51586;
 
 const server = app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
@@ -108,6 +108,8 @@ const isEndOfRound = (lobby) => {
 const cardPlayed = (lobby, userName, cardName) => {
     if (canPlayCard(lobby, userName, cardName)) {
         const lobbyIdx = getLobbyIndexByName(lobby.name);
+        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
+        const player = getPlayerByDisplayName(lobby, userName);
         if (isFirstCardPlayedOfRound(lobbyIdx)) {
             atout = getCardColor(cardName);
             const highest = findHighestFoundBet(lobbys[lobbyIdx]);
@@ -119,9 +121,9 @@ const cardPlayed = (lobby, userName, cardName) => {
         }
         if (isFirstCardPlayedOfTrick(lobbyIdx)) {
             lobbys[lobbyIdx].firstTrickCard = cardName;
+            lobbys[lobbyIdx].firstTrickCardPlayerIdx = playerIndex;
         }
-        const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
-        const player = getPlayerByDisplayName(lobby, userName);
+        
         
         lobbys[lobbyIdx].players[playerIndex]['inHand'] = player?.inHand?.filter(aCardName => aCardName !== cardName);
         lobbys[lobbyIdx].players[playerIndex]['isMyTurn'] = false;
@@ -196,7 +198,7 @@ const getCardValue = (cardName) => {
     return parseInt(cardName.split('_')[1]);
 }
 
-const cardIsAtout = (cardName) => {
+const cardIsAtout = (cardName, atout) => {
     if (!cardName || cardName == '') {
         return false;
     }
@@ -251,7 +253,6 @@ const dealCards = (userName, lobbyIdx) => {
     if (playerIdx > -1) {
         lobbys[lobbyIdx].players[playerIdx]['isDeckHolder'] = true;
         lobbys[lobbyIdx].players[playerIdx]['isMyTurn'] = true;
-        arraymove(lobbys[lobbyIdx].players, playerIdx, 0);
     }
     lobbys[lobbyIdx].deadZone = [];
 }
@@ -329,8 +330,11 @@ const endTheTrick = (lobby) => {
         lobbys[lobbyIdx].players[1]['bet'] = 'empty';
         lobbys[lobbyIdx].players[2]['bet'] = 'empty';
         lobbys[lobbyIdx].players[3]['bet'] = 'empty';
+        lobbys[lobbyIdx].atout = '';
+        lobbys[lobbyIdx].firstTrickCard = '';
+        lobbys[lobbyIdx].firstTrickCardPlayerIdx = -1;
         dealCards(lobbys[lobbyIdx].players[nextDeckHolderIndex].displayName, lobbyIdx);
-        changeGameState('placeBets', "Nouvelle manche. \u000A C'est au joueur " + lobbys[lobbyIdx].players[0].displayName + " de miser", lobbys[lobbyIdx]);
+        changeGameState('placeBets', "Nouvelle manche. \u000A C'est au joueur " + lobbys[lobbyIdx].players[getIsMyTurnPlayerIdx(lobbyIdx)].displayName + " de miser", lobbys[lobbyIdx]);
         
     } else {
         changeGameState(lobbys[lobbyIdx].gameState, "C'est au joueur " + lobbys[lobbyIdx].players[winningPlayerIdx].displayName + " de jouer", lobbys[lobbyIdx]);
@@ -348,7 +352,7 @@ const isWinningOverAllAtouts = (lobby, atoutCard) => {
     }
     let result = true;
     lobby.currentDropZone.forEach(card => {
-        if (cardIsAtout(card) && getCardValue(card) > getCardValue(atoutCard)) {
+        if (cardIsAtout(card, lobby.atout) && getCardValue(card) > getCardValue(atoutCard)) {
             result = false;
         }
     })
@@ -397,17 +401,17 @@ const isWinningOverAllAtouts = (lobby, atoutCard) => {
 
 const findTheWinningCardAndAddPoints = (lobby) => {
     const lobbyIdx = getLobbyIndexByName(lobby.name);
-    let winningPlayerIndex = -1;
     const firstCardPlayed = lobby.firstTrickCard;
+    let winningPlayerIndex = lobby.firstTrickCardPlayerIdx;
     const requestedTrickColor = getCardColor(firstCardPlayed);
     let highestTrickValue = getCardValue(firstCardPlayed);
     let highestAtoutValue = -1;
-    if (cardIsAtout(firstCardPlayed)) {
+    if (cardIsAtout(firstCardPlayed, lobby.atout)) {
         highestAtoutValue = highestTrickValue;
     };
     lobby.currentDropZone?.forEach((card, idx) => {
         const cardValue = getCardValue(card);
-        if (cardIsAtout(card) && isWinningOverAllAtouts(lobby, card)) {
+        if (cardIsAtout(card, lobby.atout) && isWinningOverAllAtouts(lobby, card)) {
             highestAtoutValue = cardValue;
             if (highestAtoutValue > highestTrickValue) {
                 highestTrickValue = highestAtoutValue;
@@ -572,25 +576,9 @@ const joinLobby = (userName, lobbyName, asObservator) => {
 }
 
 io.on('connection', function (socket) {
-    //socket.on('dealCards', function (userName, lobby) {
-    //    const lobbyIdx = getLobbyIndexByName(lobby.name);
-    //    const playerIndex = getPlayerIndexByDisplayName(lobby, userName);
-    //    dealCards(userName, lobbyIdx);
-    //    lobbys[lobbyIdx].gameState = 'gameStarted';
-    //    let nextPlayerIndex = playerIndex + 1;
-    //    if (nextPlayerIndex === 4) {
-    //        nextPlayerIndex = 0;
-    //    }
-
-    //    lobbys[lobbyIdx].gameStateMessage = 'La partie a d\u00E9buter. \u000A' + "C'est au joueur " + lobbys[lobbyIdx].players[nextPlayerIndex].displayName + ' de miser';
-    //    io.emit('refreshCards', lobbys[lobbyIdx]);
-    //    io.emit('refreshBackCard', lobbys[lobbyIdx]);
-
-    //})
-
     socket.on('chooseTeams', function (lobby) {
         const cnt = readyCount(lobby.players);
-        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + cnt + ' / 4 pru\00EAts', lobby)
+        changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + cnt + ' / 4 pr\u00EAts', lobby)
     })
 
     socket.on('joinLobby', function (userName, lobbyName, asObservator) {
@@ -637,10 +625,10 @@ io.on('connection', function (socket) {
         if (readyCnt < allPlayersCnt) {
             changeGameState('chooseTeams', 'Choisissez vos \u00E9quipes ' + readyCnt + ' / 4 pr\u00EAts', lobbys[lobbyIdx])
         } else if (readyCnt == allPlayersCnt) {
-            const player0 = lobbys[lobbyIdx].players[0];
-            const player1 = lobbys[lobbyIdx].players[1];
-            const player2 = lobbys[lobbyIdx].players[2];
-            const player3 = lobbys[lobbyIdx].players[3];
+            const player0 = { ...lobbys[lobbyIdx].players[0] };
+            const player1 = { ...lobbys[lobbyIdx].players[1] };
+            const player2 = { ...lobbys[lobbyIdx].players[2] };
+            const player3 = { ...lobbys[lobbyIdx].players[3] };
             switch (lobbys[lobbyIdx].teamChoice) {
                 case '1':
                     lobbys[lobbyIdx].players[0] = player0;
@@ -655,11 +643,13 @@ io.on('connection', function (socket) {
                     lobbys[lobbyIdx].players[3] = player2;
                     break;
             }
+            console.log('after team choice', lobbys[lobbyIdx].players, lobbys[lobbyIdx].teamChoice, player0, player1, player2, player3, );
             const rndInt = Math.floor(Math.random() * 4);
             dealCards(lobbys[lobbyIdx].players[rndInt].displayName, lobbyIdx);
             let vsMsg = lobbys[lobbyIdx].players[0].displayName.substring(0, 4) + '.' + ', ' + lobbys[lobbyIdx].players[2].displayName.substring(0, 4) + '.';
             vsMsg = vsMsg + ' VS ' + lobbys[lobbyIdx].players[1].displayName.substring(0, 4) + '.' + ', ' + lobbys[lobbyIdx].players[3].displayName.substring(0, 4) + '.';
-            changeGameState('placeBets', vsMsg + "\u000A C'est au joueur " + lobbys[lobbyIdx].players[0].displayName + " de miser", lobbys[lobbyIdx]);
+            
+            changeGameState('placeBets', vsMsg + "\u000A C'est au joueur " + lobbys[lobbyIdx].players[getIsMyTurnPlayerIdx(lobbyIdx)].displayName + " de miser", lobbys[lobbyIdx]);
         }
         
     })
@@ -712,10 +702,6 @@ io.on('connection', function (socket) {
     socket.on('cardMovedInHand', function (lobby, userName, card, index) {
         cardMovedInHand(lobby, userName, card, index);
         io.emit('cardMovedInHand', lobby, userName);
-    })
-
-    socket.on('emitChangeGameState', function (gameState, message, lobby) {
-        changeGameState(gameState, message, lobby);
     })
 
     socket.on('finishRoundNow', function (lobby) {
