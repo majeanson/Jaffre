@@ -139,9 +139,9 @@ export default class DeckHandler {
 
         this.getGridIndex = (index) => {
             switch (index) {
-                case 1: return 93;
+                case 1: return 137;
                 case 2: return 117;
-                case 3: return 137;
+                case 3: return 93;
                 case 4: return 113;
             }
         }
